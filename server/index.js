@@ -20,7 +20,9 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { error
 app.use('/api/', limiter);
 
 // Static files
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  extensions: ['html']
+}));
 
 // Health check
 app.get('/api/health', (req, res) => {

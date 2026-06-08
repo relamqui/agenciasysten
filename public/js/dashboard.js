@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Permission check: only users with perm_agencia or admin can access
   if (user.role !== 'admin' && !user.perm_agencia) {
-    window.location.href = '/financeiro.html';
+    window.location.href = '/financeiro';
     return;
   }
 
@@ -108,7 +108,7 @@ function renderBoards(list) {
 
     card.addEventListener('click', (e) => {
       if (e.target.classList.contains('board-card-fav')) return;
-      window.location.href = `/board.html?id=${board.id}`;
+      window.location.href = `/board?id=${board.id}`;
     });
 
     const favBtn = card.querySelector('.board-card-fav');
@@ -160,7 +160,7 @@ function renderFavorites(list) {
   list.filter(b => b.is_favorite).forEach(board => {
     const item = document.createElement('a');
     item.className = 'nav-item';
-    item.href = `/board.html?id=${board.id}`;
+    item.href = `/board?id=${board.id}`;
     item.innerHTML = `
       <span style="width:8px;height:8px;border-radius:50%;background:${board.background.includes('#') ? board.background.split(',')[1]?.trim().split(')')[0] || '#6C5CE7' : '#6C5CE7'};flex-shrink:0;"></span>
       ${escapeHtml(board.title)}
@@ -229,7 +229,7 @@ function renderMyCards() {
     const dateStr = formatCardDateRange(card.start_date, card.due_date);
 
     return `
-      <div class="my-card-item ${doneClass} ${overdueClass}" onclick="window.location.href='/board.html?id=${card.board_id}'">
+      <div class="my-card-item ${doneClass} ${overdueClass}" onclick="window.location.href='/board?id=${card.board_id}'">
         <div class="my-card-board-bar" style="background:${card.list_color || card.board_background}"></div>
         <div class="my-card-content">
           <div class="my-card-title">${escapeHtml(card.title)}</div>
@@ -348,7 +348,7 @@ function renderCalendar() {
         const timeStr = s ? s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
         bar.title = `${card.title}\n${card.board_title}${timeStr ? '\n⏰ ' + timeStr : ''}`;
         bar.innerHTML = `<span class="cal-bar-text">${timeStr ? `<b>${timeStr}</b> ` : ''}${escapeHtml(card.title)}</span>`;
-        bar.onclick = () => window.location.href = `/board.html?id=${card.board_id}`;
+        bar.onclick = () => window.location.href = `/board?id=${card.board_id}`;
         eventsLayer.appendChild(bar);
       });
     }

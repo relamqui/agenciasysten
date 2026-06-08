@@ -16,7 +16,7 @@ function renderSidebar(activePage) {
       id: 'agencia',
       label: 'Agência',
       icon: 'business_center',
-      href: '/dashboard.html',
+      href: '/dashboard',
       active: activePage === 'agencia'
     });
   }
@@ -26,7 +26,7 @@ function renderSidebar(activePage) {
       id: 'financeiro',
       label: 'Financeiro',
       icon: 'payments',
-      href: '/financeiro.html',
+      href: '/financeiro',
       active: activePage === 'financeiro'
     });
   }
@@ -36,7 +36,7 @@ function renderSidebar(activePage) {
       id: 'admin',
       label: 'Usuários',
       icon: 'group',
-      href: '/admin.html',
+      href: '/admin',
       active: activePage === 'admin'
     });
   }

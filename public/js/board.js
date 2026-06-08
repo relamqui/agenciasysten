@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const params = new URLSearchParams(window.location.search);
   boardId = params.get('id');
-  if (!boardId) { window.location.href = '/dashboard.html'; return; }
+  if (!boardId) { window.location.href = '/dashboard'; return; }
 
   await loadBoard();
   setupModals();
@@ -95,7 +95,7 @@ async function loadBoard() {
   try {
     const boards = await API.get('/boards');
     boardData = boards.find(b => b.id == boardId);
-    if (!boardData) { window.location.href = '/dashboard.html'; return; }
+    if (!boardData) { window.location.href = '/dashboard'; return; }
 
     document.title = `TaskFlow — ${boardData.title}`;
     document.getElementById('board-title').value = boardData.title;

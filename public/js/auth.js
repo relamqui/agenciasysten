@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // If already logged in, redirect
   if (localStorage.getItem('token')) {
-    window.location.href = '/dashboard.html';
+    window.location.href = '/dashboard';
     return;
   }
 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await API.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.location.href = '/dashboard.html';
+      window.location.href = '/dashboard';
     } catch (err) {
       showError(err.message);
       btn.textContent = 'Entrar';

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const user = API.getUser();
   if (user.role !== 'admin') {
-    window.location.href = '/dashboard.html';
+    window.location.href = '/dashboard';
     return;
   }
 

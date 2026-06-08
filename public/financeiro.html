@@ -289,7 +289,7 @@
       const user = getUser();
       if (!user) return;
       if (user.role !== 'admin' && !user.perm_financeiro) {
-        window.location.href = '/dashboard.html';
+        window.location.href = '/dashboard';
         return;
       }
       
