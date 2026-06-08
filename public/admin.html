@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgenciaSysten — Usuários</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:           #0F0F13;
+      --surface:      #13121b;
+      --surface-low:  #1c1b23;
+      --surface-mid:  #201f27;
+      --surface-high: #2a2932;
+      --glass:        rgba(28, 28, 33, 0.7);
+      --border:       rgba(255, 255, 255, 0.08);
+      --accent:       #6C5CE7;
+      --accent-dim:   rgba(108, 92, 231, 0.2);
+      --accent-text:  #c6bfff;
+      --text:         #e5e0ed;
+      --text-sub:     #8F8F99;
+      --text-muted:   #474554;
+      --danger:       #ffb4ab;
+      --danger-bg:    rgba(255,77,106,0.1);
+      --success:      #00d68f;
+      --radius:       10px;
+      --font:         'Inter', -apple-system, sans-serif;
+      --transition:   0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+
+    /* ── MATERIAL ICON ── */
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; vertical-align: middle; font-size: 20px; }
+
+    /* ── LAYOUT ── */
+    .app-shell { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--surface-low);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 28px 16px;
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 40;
+    }
+    .sidebar-logo { font-size: 20px; font-weight: 800; color: var(--accent-text); letter-spacing: -0.5px; padding: 0 8px 4px; }
+    .sidebar-sub  { font-size: 11px; color: var(--text-sub); padding: 0 8px 28px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--text-sub);
+      text-decoration: none; transition: var(--transition);
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-family: var(--font);
+    }
+    .nav-item:hover  { background: rgba(255,255,255,0.06); color: var(--text); }
+    .nav-item.active { background: rgba(108,92,231,0.12); color: var(--accent-text); font-weight: 600; border-right: 3px solid var(--accent); border-radius: 8px 0 0 8px; }
+    .sidebar-footer { margin-top: auto; padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border); }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 600; }
+    .sidebar-user-email { font-size: 11px; color: var(--text-sub); }
+
+    /* ── MAIN ── */
+    .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    body.mod-sidebar-collapsed .main-content { margin-left: 68px; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      background: var(--glass); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .breadcrumb span { color: var(--text-sub); }
+    .breadcrumb strong { color: var(--text); font-weight: 600; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: var(--radius);
+      font-family: var(--font); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: var(--transition); border: none; outline: none;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #5847d2; box-shadow: 0 0 20px rgba(108,92,231,0.4); transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-ghost  { background: rgba(255,255,255,0.05); color: var(--text-sub); border: 1px solid var(--border); }
+    .btn-ghost:hover  { background: rgba(255,255,255,0.09); color: var(--text); }
+    .btn-icon-sm { width: 32px; height: 32px; padding: 0; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: var(--transition); background: transparent; }
+
+    /* ── PAGE CONTENT ── */
+    .page-content { padding: 32px; flex: 1; }
+    .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .page-desc  { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+
+    /* ── SEARCH ── */
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      background: var(--surface-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 9px 12px 9px 36px;
+      color: var(--text); font-family: var(--font); font-size: 13px; outline: none;
+      transition: var(--transition); width: 240px;
+    }
+    .search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .search-wrap .material-symbols-outlined { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 18px; pointer-events: none; }
+
+    /* ── GLASS CARD ── */
+    .glass-card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    /* ── TABLE ── */
+    .users-table { width: 100%; border-collapse: collapse; }
+    .users-table thead tr { background: rgba(42,41,50,0.5); border-bottom: 1px solid var(--border); }
+    .users-table th { padding: 13px 24px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); }
+    .users-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .users-table tbody tr:last-child { border-bottom: none; }
+    .users-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+    .users-table td { padding: 14px 24px; font-size: 13px; vertical-align: middle; }
+
+    /* user cell */
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-avatar-tbl { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; }
+    .user-fullname { font-weight: 600; font-size: 14px; color: var(--text); }
+
+    /* role badge */
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-admin { background: rgba(108,92,231,0.18); color: var(--accent-text); border: 1px solid rgba(108,92,231,0.3); }
+    .badge-user  { background: rgba(200,197,204,0.1); color: var(--text-sub); border: 1px solid var(--border); }
+
+    /* action row */
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; opacity: 0; transition: opacity var(--transition); }
+    .users-table tbody tr:hover .row-actions { opacity: 1; }
+    .action-btn { padding: 6px; border-radius: 7px; border: none; cursor: pointer; transition: var(--transition); background: transparent; display: flex; align-items: center; justify-content: center; }
+    .action-btn-edit  { color: var(--text-sub); }
+    .action-btn-edit:hover  { background: rgba(108,92,231,0.15); color: var(--accent-text); }
+    .action-btn-del   { color: var(--text-sub); }
+    .action-btn-del:hover   { background: var(--danger-bg); color: var(--danger); }
+
+    /* table footer */
+    .table-footer { padding: 13px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(14,13,21,0.3); }
+    .table-footer span { font-size: 12px; color: var(--text-sub); }
+    .pagination { display: flex; gap: 6px; }
+    .pagination button { padding: 6px 8px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; transition: var(--transition); }
+    .pagination button:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: var(--text); }
+    .pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── MODAL OVERLAY ── */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal-box {
+      background: var(--surface-low);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%; max-width: 480px;
+      position: relative;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn { from { opacity:0; transform: translateY(12px) scale(0.97); } to { opacity:1; transform: none; } }
+    .modal-box h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; }
+    .modal-box p  { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+    .modal-close-btn { position: absolute; top: 16px; right: 16px; padding: 5px; border-radius: 7px; border: none; background: transparent; color: var(--text-sub); cursor: pointer; transition: var(--transition); }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+    /* form inside modal */
+    .form-field { margin-bottom: 16px; }
+    .form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+    .form-field input,
+    .form-field select {
+      width: 100%; padding: 11px 14px;
+      background: var(--surface-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: 14px; outline: none;
+      transition: var(--transition); appearance: none;
+    }
+    .form-field input:focus,
+    .form-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .form-field input::placeholder { color: var(--text-muted); }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 28px; }
+    .btn-cancel { background: none; border: none; font-family: var(--font); font-size: 13px; color: var(--text-sub); cursor: pointer; transition: var(--transition); }
+    .btn-cancel:hover { color: var(--text); }
+
+    /* boards access list */
+    .boards-check-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; background: var(--surface-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+    .boards-check-list label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: var(--transition); }
+    .boards-check-list label:hover { background: rgba(255,255,255,0.06); }
+
+    /* ── TOAST ── */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.4); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; }
+    .toast.success { background: var(--success); }
+    .toast.error   { background: #ff4d6a; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: none; opacity:1; } }
+    @keyframes fadeOut { to { opacity:0; transform: translateY(-8px); } }
+
+    /* ── BG GLOW ── */
+    .bg-glow-1 { position: fixed; top: -10%; right: -10%; width: 500px; height: 500px; background: rgba(108,92,231,0.08); border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+    .bg-glow-2 { position: fixed; bottom: -15%; left: -8%;  width: 400px; height: 400px; background: rgba(108,92,231,0.05); border-radius: 50%; filter: blur(90px);  pointer-events: none; z-index: 0; }
+    /* ── TOGGLE SWITCH ── */
+    .toggle-switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text); user-select: none; }
+    .toggle-switch input { display: none; }
+    .toggle-track { width: 36px; height: 20px; background: var(--surface-high); border-radius: 20px; position: relative; transition: 0.3s; border: 1px solid var(--border); flex-shrink: 0; }
+    .toggle-thumb { width: 14px; height: 14px; background: var(--text-sub); border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.3s; }
+    .toggle-switch input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+    .toggle-switch input:checked + .toggle-track .toggle-thumb { background: white; left: 18px; }
+  </style>
+</head>
+<body data-sidebar-page="admin">
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="app-shell">
+    <!-- SIDEBAR injected by sidebar.js -->
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>Admin</span>
+          <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
+          <strong>Usuários</strong>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openCreateUserModal()">
+            <span class="material-symbols-outlined" style="font-size:16px;">add</span>
+            Novo Usuário
+          </button>
+          <div id="user-profile" style="display:flex;align-items:center;gap:8px;"></div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="page-content">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;gap:16px;">
+          <div>
+            <h2 class="page-title">Gestão de Usuários</h2>
+            <p class="page-desc">Gerencie permissões e acessos de todos os colaboradores do workspace.</p>
+          </div>
+          <div class="search-wrap">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="search-users-input" placeholder="Buscar usuários...">
+          </div>
+        </div>
+
+        <!-- TABLE CARD -->
+        <div class="glass-card">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Email</th>
+                <th>Cargo</th>
+                <th>Quadros</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <!-- Populated by admin.js -->
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span id="table-count">Carregando usuários...</span>
+            <div class="pagination">
+              <button disabled><span class="material-symbols-outlined" style="font-size:16px;">chevron_left</span></button>
+              <button><span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CREATE USER MODAL ===== -->
+  <div class="modal-backdrop" id="user-modal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeUserModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3>Criar Novo Usuário</h3>
+      <p>Preencha as informações para adicionar um membro à equipe.</p>
+
+      <form id="create-user-form">
+        <div class="form-field">
+          <label>Nome Completo</label>
+          <input type="text" id="user-name" placeholder="Ex: João Silva" required>
+        </div>
+        <div class="form-field">
+          <label>E-mail</label>
+          <input type="email" id="user-email" placeholder="joao@empresa.com" required>
+        </div>
+        <div class="form-row-2">
+          <div class="form-field">
+            <label>Senha Inicial</label>
+            <input type="password" id="user-password" placeholder="••••••••" required minlength="6">
+          </div>
+          <div class="form-field">
+            <label>Permissão</label>
+            <select id="user-role">
+              <option value="user">Colaborador</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Permissões de Módulo</label>
+          <div class="boards-check-list" style="gap:24px; flex-direction: row;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="user-perm-agencia">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent);">business_center</span>
+              Agência (Kanban)
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="user-perm-financeiro">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent);">payments</span>
+              Financeiro
+            </label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Quadros de acesso</label>
+          <div class="boards-check-list" id="create-user-boards-list">
+            <!-- Checkboxes by JS -->
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeUserModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Conta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== EDIT USER MODAL ===== -->
+  <div class="modal-backdrop" id="edit-user-modal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeEditUserModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3>Editar Usuário</h3>
+      <p>Altere as informações do colaborador selecionado.</p>
+
+      <form id="edit-user-form">
+        <input type="hidden" id="edit-user-id">
+        <div class="form-field">
+          <label>Nome Completo</label>
+          <input type="text" id="edit-user-name" required>
+        </div>
+        <div class="form-field">
+          <label>E-mail</label>
+          <input type="email" id="edit-user-email" required>
+        </div>
+        <div class="form-row-2">
+          <div class="form-field">
+            <label>Nova Senha (opcional)</label>
+            <input type="password" id="edit-user-password" placeholder="Deixe em branco para manter" minlength="6">
+          </div>
+          <div class="form-field">
+            <label>Permissão</label>
+            <select id="edit-user-role">
+              <option value="user">Colaborador</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Permissões de Módulo</label>
+          <div class="boards-check-list" style="gap:24px; flex-direction: row;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="edit-user-perm-agencia">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent);">business_center</span>
+              Agência (Kanban)
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="edit-user-perm-financeiro">
+              <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent);">payments</span>
+              Financeiro
+            </label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeEditUserModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== BOARD ACCESS MODAL ===== -->
+  <div class="modal-backdrop" id="access-modal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeAccessModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3>Gerenciar Acesso</h3>
+      <p>Selecione os quadros que <strong id="access-user-name"></strong> pode acessar.</p>
+      <div class="form-field">
+        <div class="boards-check-list" id="boards-access-list">
+          <!-- Checkboxes by JS -->
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" onclick="closeAccessModal()">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>
+    // Close modals on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
+      }
+    });
+    // Close on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+      el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); });
+    });
+    // Search filter
+    const searchInput = document.getElementById('search-users-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.toLowerCase();
+        document.querySelectorAll('#users-tbody tr').forEach(row => {
+          row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+      });
+    }
+  </script>
+</body>
+</html>

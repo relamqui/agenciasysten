@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kanban-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wpcrm_user
+      POSTGRES_PASSWORD: TROQUE_POR_SENHA_FORTE
+      POSTGRES_DB: wpcrm
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wpcrm_user -d wpcrm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: kanban-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgres://wpcrm_user:TROQUE_POR_SENHA_FORTE@db:5432/wpcrm?sslmode=disable
+      - JWT_SECRET=dev-secret-key-mude-em-producao
+      - JWT_EXPIRES_IN=7d
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  pgdata:
