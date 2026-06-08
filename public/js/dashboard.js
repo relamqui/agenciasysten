@@ -156,6 +156,7 @@ function renderBoards(list) {
 
 function renderFavorites(list) {
   const favContainer = document.getElementById('fav-boards-list');
+  if (!favContainer) return;
   favContainer.innerHTML = '';
   list.filter(b => b.is_favorite).forEach(board => {
     const item = document.createElement('a');
