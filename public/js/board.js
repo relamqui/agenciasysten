@@ -6,6 +6,7 @@ let labelsData = [];
 let currentCardId = null;
 let currentAssignees = [];
 let currentPriority = 'normal';
+let currentCardLabels = [];
 let draggedCard = null;
 let isCreatingCard = false;
 let createTargetListId = null;
@@ -154,7 +155,18 @@ document.getElementById('submit-create-empresa-btn').addEventListener('click', a
     // Recarregar os dados do card
     if (currentCardId) {
       const card = await API.get(`/cards/${currentCardId}`);
-      renderCardLabels(card.labels || []);
+      currentCardLabels = card.labels || [];
+      // Se não estava selecionada, seleciona a nova automaticamente
+      if (!currentCardLabels.some(l => l.id === newLabel.id)) {
+        await API.post(`/cards/${currentCardId}/labels`, { label_id: newLabel.id });
+        const updatedCard = await API.get(`/cards/${currentCardId}`);
+        currentCardLabels = updatedCard.labels || [];
+      }
+      renderCardLabels();
+      renderLists();
+    } else if (isCreatingCard) {
+      currentCardLabels.push(newLabel);
+      renderCardLabels();
     }
     showToast('Empresa criada com sucesso!', 'success');
   } catch (err) {
@@ -774,13 +786,13 @@ async function openCardModal(cardId, list) {
 }
 
 
-function renderCardLabels(cardLabels) {
+function renderCardLabels() {
   const grid = document.getElementById('card-labels-grid');
   grid.innerHTML = '';
-  const cardLabelIds = cardLabels.map(l => l.id);
+  const cardLabelIds = currentCardLabels.map(l => l.id);
 
   // Render selected labels as chips in the grid
-  cardLabels.forEach(label => {
+  currentCardLabels.forEach(label => {
     const chipWrapper = document.createElement('div');
     chipWrapper.style.display = 'flex';
     chipWrapper.style.alignItems = 'center';
@@ -794,12 +806,18 @@ function renderCardLabels(cardLabels) {
     // Clicking the chip removes it from the card
     chip.addEventListener('click', async (e) => {
       e.stopPropagation();
+      if (isCreatingCard) {
+        currentCardLabels = currentCardLabels.filter(l => l.id !== label.id);
+        renderCardLabels();
+        return;
+      }
       if (!currentCardId) return;
       try {
-        await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
+        await API.delete(`/cards/${currentCardId}/labels/${label.id}`);
         listsData = await API.get(`/lists/${boardId}/lists`);
         const updatedCard = await API.get(`/cards/${currentCardId}`);
-        renderCardLabels(updatedCard.labels || []);
+        currentCardLabels = updatedCard.labels || [];
+        renderCardLabels();
         renderLists();
       } catch (err) { showToast(err.message, 'error'); }
     });
@@ -832,15 +850,21 @@ function renderCardLabels(cardLabels) {
 
       item.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!currentCardId) {
-           showToast('Salve o cartão primeiro para adicionar empresas', 'error');
-           return;
+        if (isCreatingCard) {
+          if (isSelected) currentCardLabels = currentCardLabels.filter(l => l.id !== label.id);
+          else currentCardLabels.push(label);
+          renderCardLabels();
+          return;
         }
+        if (!currentCardId) return;
         try {
-          await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
+          if (isSelected) await API.delete(`/cards/${currentCardId}/labels/${label.id}`);
+          else await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
+          
           listsData = await API.get(`/lists/${boardId}/lists`);
           const updatedCard = await API.get(`/cards/${currentCardId}`);
-          renderCardLabels(updatedCard.labels || []);
+          currentCardLabels = updatedCard.labels || [];
+          renderCardLabels();
           renderLists();
         } catch (err) { showToast(err.message, 'error'); }
       });
@@ -1090,6 +1114,7 @@ function setupModals() {
 
     try {
       const assigneesArr = currentAssignees ? currentAssignees.map(a => a.id) : [];
+      const labelsArr = currentCardLabels ? currentCardLabels.map(l => l.id) : [];
 
       if (isCreatingCard) {
         await API.post('/cards', {
@@ -1100,6 +1125,7 @@ function setupModals() {
           due_date: dueDate,
           assigned_user_ids: assigneesArr,
           priority: currentPriority,
+          label_ids: labelsArr
         });
         showToast('Cartão criado!', 'success');
       } else {

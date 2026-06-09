@@ -56,6 +56,12 @@ router.post('/', auth, async (req, res, next) => {
         }
       }
 
+      if (Array.isArray(req.body.label_ids) && req.body.label_ids.length > 0) {
+        for (const lid of req.body.label_ids) {
+          await client.query('INSERT INTO card_labels (card_id, label_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [newCard.id, lid]);
+        }
+      }
+
       await client.query('COMMIT');
     } catch (err) {
       await client.query('ROLLBACK');
