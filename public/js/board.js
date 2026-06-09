@@ -137,27 +137,26 @@ async function loadBoard() {
   }
 }
 
-// Criar nova etiqueta
-document.getElementById('create-label-btn').addEventListener('click', async () => {
-  const name = document.getElementById('new-label-name').value.trim();
-  const color = document.getElementById('new-label-color').value;
+// Criar nova etiqueta via Modal
+document.getElementById('submit-create-empresa-btn').addEventListener('click', async () => {
+  const name = document.getElementById('new-empresa-name').value.trim();
+  const color = document.getElementById('new-empresa-color').value;
   if (!boardId) return;
 
   try {
     const newLabel = await API.post('/labels', { name, color, board_id: boardId });
     labelsData.push(newLabel);
-    document.getElementById('new-label-name').value = '';
-    renderCardLabels(labelsData.filter(l => {
-      // Re-renderizar as do card atual apenas se o modal estiver aberto (vou re-renderizar baseando nas selecionadas do DOM ou backend)
-      const grid = document.getElementById('card-labels-grid');
-      // Atualizar a listagem para permitir seleção
-    }));
+    
+    // Reset modal
+    document.getElementById('new-empresa-name').value = '';
+    document.getElementById('create-empresa-modal').classList.remove('show');
+    
     // Recarregar os dados do card
     if (currentCardId) {
       const card = await API.get(`/cards/${currentCardId}`);
       renderCardLabels(card.labels || []);
     }
-    showToast('Etiqueta criada!', 'success');
+    showToast('Empresa criada com sucesso!', 'success');
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -786,50 +785,75 @@ function renderCardLabels(cardLabels) {
   grid.innerHTML = '';
   const cardLabelIds = cardLabels.map(l => l.id);
 
-  labelsData.forEach(label => {
+  // Render selected labels as chips in the grid
+  cardLabels.forEach(label => {
     const chipWrapper = document.createElement('div');
     chipWrapper.style.display = 'flex';
     chipWrapper.style.alignItems = 'center';
     chipWrapper.style.gap = '4px';
 
     const chip = document.createElement('div');
-    chip.className = `label-chip${cardLabelIds.includes(label.id) ? ' selected' : ''}`;
+    chip.className = 'label-chip selected';
     chip.style.background = label.color;
     chip.textContent = label.name || ' ';
-    chip.addEventListener('click', async () => {
+    
+    // Clicking the chip removes it from the card
+    chip.addEventListener('click', async (e) => {
+      e.stopPropagation();
       if (!currentCardId) return;
       try {
         await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
-        chip.classList.toggle('selected');
         listsData = await API.get(`/lists/${boardId}/lists`);
+        const updatedCard = await API.get(`/cards/${currentCardId}`);
+        renderCardLabels(updatedCard.labels || []);
         renderLists();
       } catch (err) { showToast(err.message, 'error'); }
     });
     
     chipWrapper.appendChild(chip);
-
-    if (canManageLabels) {
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn-icon';
-      delBtn.style.color = '#ff7675';
-      delBtn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-      delBtn.onclick = async () => {
-        if(confirm('Excluir etiqueta definitivamente?')) {
-          try {
-            await API.delete(`/labels/${label.id}`);
-            labelsData = labelsData.filter(l => l.id !== label.id);
-            renderCardLabels(cardLabels.filter(l => l.id !== label.id));
-            listsData = await API.get(`/lists/${boardId}/lists`);
-            renderLists();
-            showToast('Etiqueta excluída', 'success');
-          } catch(e) { showToast(e.message, 'error'); }
-        }
-      };
-      chipWrapper.appendChild(delBtn);
-    }
-
     grid.appendChild(chipWrapper);
   });
+
+  // Render all labels in the dropdown
+  const dropdownList = document.getElementById('empresa-dropdown-list');
+  if (dropdownList) {
+    dropdownList.innerHTML = '';
+    labelsData.forEach(label => {
+      const isSelected = cardLabelIds.includes(label.id);
+      
+      const item = document.createElement('div');
+      item.className = 'cu-dropdown-item';
+      item.style.justifyContent = 'space-between';
+      
+      const leftContent = document.createElement('div');
+      leftContent.style.display = 'flex';
+      leftContent.style.alignItems = 'center';
+      leftContent.style.gap = '8px';
+      leftContent.innerHTML = `<span class="priority-dot" style="background:${label.color};"></span> ${escapeHtml(label.name || ' ')}`;
+      item.appendChild(leftContent);
+      
+      if (isSelected) {
+        item.innerHTML += `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color:#2ecc71;"><polyline points="20 6 9 17 4 12"/></svg>`;
+      }
+
+      item.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!currentCardId) {
+           showToast('Salve o cartão primeiro para adicionar empresas', 'error');
+           return;
+        }
+        try {
+          await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
+          listsData = await API.get(`/lists/${boardId}/lists`);
+          const updatedCard = await API.get(`/cards/${currentCardId}`);
+          renderCardLabels(updatedCard.labels || []);
+          renderLists();
+        } catch (err) { showToast(err.message, 'error'); }
+      });
+      
+      dropdownList.appendChild(item);
+    });
+  }
 }
 
 function renderAssigneesDropdownBtn() {
@@ -906,11 +930,33 @@ function setupModals() {
     }
   });
 
-  // Color swatches for Empresa
-  const swatches = document.querySelectorAll('#label-color-swatches .lcs');
-  const colorInput = document.getElementById('new-label-color');
-  // Mark first as selected by default
-  if (swatches.length > 0) swatches[6].classList.add('selected'); // roxo default
+  // Empresa dropdown toggle
+  const empresaBtn = document.getElementById('cu-empresa-btn');
+  const empresaDropdown = document.getElementById('cu-empresa-dropdown');
+  empresaBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeAllContextMenus();
+    empresaDropdown.style.display = empresaDropdown.style.display === 'none' ? 'flex' : 'none';
+    empresaDropdown.style.flexDirection = 'column';
+  });
+
+  // Create Empresa Modal logic
+  const createEmpresaModal = document.getElementById('create-empresa-modal');
+  document.getElementById('open-create-empresa-modal-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    empresaDropdown.style.display = 'none';
+    createEmpresaModal.classList.add('show');
+  });
+  document.getElementById('close-empresa-modal').addEventListener('click', () => {
+    createEmpresaModal.classList.remove('show');
+  });
+  createEmpresaModal.addEventListener('click', (e) => {
+    if (e.target === createEmpresaModal) createEmpresaModal.classList.remove('show');
+  });
+
+  // Color swatches for new Empresa modal
+  const swatches = document.querySelectorAll('#empresa-color-swatches .lcs');
+  const colorInput = document.getElementById('new-empresa-color');
   swatches.forEach(sw => {
     sw.addEventListener('click', () => {
       swatches.forEach(s => s.classList.remove('selected'));
@@ -1032,6 +1078,9 @@ function setupModals() {
     if (!statusBtn.contains(e.target) && !statusDropdown.contains(e.target)) statusDropdown.style.display = 'none';
     if (!assigneeBtn.contains(e.target) && !assigneeDropdown.contains(e.target)) assigneeDropdown.style.display = 'none';
     if (!priorityBtn.contains(e.target) && !priorityDropdown.contains(e.target)) priorityDropdown.style.display = 'none';
+    if (!empresaBtn.contains(e.target) && !document.getElementById('cu-empresa-dropdown').contains(e.target)) {
+      document.getElementById('cu-empresa-dropdown').style.display = 'none';
+    }
   });
 
   // Save card

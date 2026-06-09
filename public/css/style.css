@@ -333,7 +333,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
 .cu-properties-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: x 24px;
+  column-gap: 24px;
   row-gap: 16px;
   margin-bottom: 32px;
 }
@@ -451,6 +451,9 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
 
 .cu-description-area {
   display: block;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 .cu-description-input {
@@ -582,7 +585,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
   box-sizing: border-box;
 }
 #card-description-editor { width: 100%; box-sizing: border-box; }
-.cu-description-area .ql-editor { min-height: 120px; color: #d1d5db; }
+.cu-description-area .ql-editor { min-height: 120px; color: #d1d5db; word-break: normal; white-space: pre-wrap; }
 .cu-description-area .ql-editor.ql-blank::before { color: #52525b; }
 .cu-description-area .ql-snow .ql-stroke { stroke: #a1a1aa; }
 .cu-description-area .ql-snow .ql-fill { fill: #a1a1aa; }
