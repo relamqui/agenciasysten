@@ -132,58 +132,43 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
               Prioridade
             </div>
-            <div class="cu-prop-value">
-              <div class="cu-empty-val">Vazio</div>
+            <div class="cu-prop-value" style="position:relative;">
+              <button class="cu-priority-btn" id="cu-priority-btn">
+                <span class="priority-dot" id="cu-priority-dot"></span>
+                <span id="cu-priority-label">Normal</span>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="cu-dropdown-menu" id="cu-priority-dropdown" style="display:none; min-width:160px;">
+                <div class="cu-dropdown-item cu-priority-item" data-priority="urgente" data-color="#e74c3c" data-label="Urgente">
+                  <span class="priority-dot" style="background:#e74c3c;"></span> 🔴 Urgente
+                </div>
+                <div class="cu-dropdown-item cu-priority-item" data-priority="alta" data-color="#e67e22" data-label="Alta">
+                  <span class="priority-dot" style="background:#e67e22;"></span> 🟠 Alta
+                </div>
+                <div class="cu-dropdown-item cu-priority-item" data-priority="normal" data-color="#3498db" data-label="Normal">
+                  <span class="priority-dot" style="background:#3498db;"></span> 🔵 Normal
+                </div>
+                <div class="cu-dropdown-item cu-priority-item" data-priority="baixa" data-color="#95a5a6" data-label="Baixa">
+                  <span class="priority-dot" style="background:#95a5a6;"></span> ⚫ Baixa
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Est Time -->
+          <!-- Empresa (Etiquetas) -->
           <div class="cu-prop-row">
             <div class="cu-prop-label">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12l5.25 5 2.625-3"/><path d="M8 12l5.25 5L22 7"/></svg>
-              Tempo estimado
-            </div>
-            <div class="cu-prop-value">
-              <div class="cu-empty-val">Vazio</div>
-            </div>
-          </div>
-
-          <!-- Tracked Time -->
-          <div class="cu-prop-row">
-            <div class="cu-prop-label">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Tempo rastreado
-            </div>
-            <div class="cu-prop-value">
-              <div class="cu-play-btn"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Adicionar hora</div>
-            </div>
-          </div>
-
-          <!-- Tags -->
-          <div class="cu-prop-row">
-            <div class="cu-prop-label">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              Etiquetas
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Empresa
             </div>
             <div class="cu-prop-value" style="display:flex; flex-direction:column; gap:8px;">
               <div class="labels-grid" id="card-labels-grid" style="min-height:24px;"></div>
               
               <div id="manage-labels-container" style="display:none; gap:6px; align-items:center; background:rgba(255,255,255,0.02); padding:6px; border-radius:4px;">
-                 <input type="text" id="new-label-name" placeholder="Nova etiqueta" style="flex:1; padding:4px 6px; font-size:12px; border-radius:4px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white;">
+                 <input type="text" id="new-label-name" placeholder="Nova empresa" style="flex:1; padding:4px 6px; font-size:12px; border-radius:4px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white;">
                  <input type="color" id="new-label-color" value="#6C5CE7" style="width:24px; height:24px; padding:0; border:none; border-radius:4px; cursor:pointer;">
                  <button class="btn btn-primary btn-sm" id="create-label-btn" style="padding:4px 8px; font-size:11px;">Criar</button>
               </div>
-            </div>
-          </div>
-
-          <!-- Relationships -->
-          <div class="cu-prop-row">
-            <div class="cu-prop-label">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Relacionamentos
-            </div>
-            <div class="cu-prop-value">
-              <div class="cu-empty-val">Vazio</div>
             </div>
           </div>
         </div>
@@ -196,8 +181,8 @@
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; color:var(--text-muted);"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
             <h3 class="cu-section-title" style="margin:0;">Descrição</h3>
           </div>
-          <div class="cu-description-area" style="background: transparent; border: none; padding: 0;">
-            <div id="card-description-editor" style="min-height: 150px; background: rgba(255,255,255,0.03); color: var(--text); border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);"></div>
+          <div class="cu-description-area">
+            <div id="card-description-editor"></div>
           </div>
         </div>
 

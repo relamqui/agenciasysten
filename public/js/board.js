@@ -5,12 +5,20 @@ let listsData = [];
 let labelsData = [];
 let currentCardId = null;
 let currentAssignees = [];
+let currentPriority = 'normal';
 let draggedCard = null;
 let isCreatingCard = false;
 let createTargetListId = null;
 let currentViewMode = 'kanban';
 let quillEditor = null;
 let canManageLabels = false;
+
+const PRIORITY_MAP = {
+  urgente: { label: 'Urgente', color: '#e74c3c', emoji: '🔴' },
+  alta:    { label: 'Alta',    color: '#e67e22', emoji: '🟠' },
+  normal:  { label: 'Normal',  color: '#3498db', emoji: '🔵' },
+  baixa:   { label: 'Baixa',  color: '#95a5a6', emoji: '⚫' },
+};
 
 /**
  * Converte o valor de um input datetime-local (hora local)
@@ -373,8 +381,11 @@ function renderListView() {
              </div>`
           }
         </div>
-        <div class="lv-placeholder">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <div>
+          ${(() => {
+            const p = PRIORITY_MAP[card.priority] || PRIORITY_MAP['normal'];
+            return `<span class="lv-priority-badge" style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}44; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600; white-space:nowrap;">${p.emoji} ${p.label}</span>`;
+          })()}
         </div>
         <div>
           <span class="lv-status-badge" style="display:inline-flex;">
@@ -446,6 +457,12 @@ function createCardItem(card, list) {
   const done = parseInt(card.checklist_done) || 0;
   if (total > 0) {
     badges.push(`<span class="card-badge ${done === total ? 'done' : ''}">${done}/${total}</span>`);
+  }
+
+  // Badge de prioridade
+  if (card.priority && card.priority !== 'normal') {
+    const p = PRIORITY_MAP[card.priority];
+    if (p) badges.push(`<span class="card-badge priority-badge" style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}44;">${p.emoji} ${p.label}</span>`);
   }
 
   if (badges.length > 0) html += `<div class="card-badges">${badges.join('')}</div>`;
@@ -703,6 +720,7 @@ function openCreateCardModal(list) {
   currentCardId = null;
   createTargetListId = list.id;
   currentAssignees = [];
+  currentPriority = 'normal';
 
   document.getElementById('card-id-display').textContent = 'NOVO';
   document.getElementById('card-title-input').value = '';
@@ -715,7 +733,7 @@ function openCreateCardModal(list) {
   document.getElementById('card-due-date').value = '';
 
   renderAssigneesDropdownBtn();
-
+  renderPriorityBtn('normal');
   renderCardLabels([]);
   loadAttachments(null);
 
@@ -742,6 +760,10 @@ async function openCardModal(cardId, list) {
     // Responsável
     currentAssignees = Array.isArray(card.assignees) ? card.assignees : [];
     renderAssigneesDropdownBtn();
+
+    // Prioridade
+    currentPriority = card.priority || 'normal';
+    renderPriorityBtn(currentPriority);
 
     renderCardLabels(card.labels || []);
     loadAttachments(cardId);
@@ -821,6 +843,16 @@ function renderAssigneesDropdownBtn() {
     assigneeBtn.style.border = '';
     assigneeBtn.style.padding = '';
   }
+}
+
+function renderPriorityBtn(priority) {
+  const p = PRIORITY_MAP[priority] || PRIORITY_MAP['normal'];
+  const dot = document.getElementById('cu-priority-dot');
+  const label = document.getElementById('cu-priority-label');
+  if (dot) dot.style.background = p.color;
+  if (label) label.textContent = p.label;
+  const btn = document.getElementById('cu-priority-btn');
+  if (btn) btn.setAttribute('data-priority', priority);
 }
 
 function renderChecklist(items) {
@@ -965,9 +997,28 @@ function setupModals() {
   });
 
   // Close dropdowns on outside click
+  const priorityBtn = document.getElementById('cu-priority-btn');
+  const priorityDropdown = document.getElementById('cu-priority-dropdown');
+
+  priorityBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = priorityDropdown.style.display !== 'none';
+    priorityDropdown.style.display = isOpen ? 'none' : 'block';
+  });
+
+  priorityDropdown.querySelectorAll('.cu-priority-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentPriority = item.dataset.priority;
+      renderPriorityBtn(currentPriority);
+      priorityDropdown.style.display = 'none';
+    });
+  });
+
   document.addEventListener('click', (e) => {
     if (!statusBtn.contains(e.target) && !statusDropdown.contains(e.target)) statusDropdown.style.display = 'none';
     if (!assigneeBtn.contains(e.target) && !assigneeDropdown.contains(e.target)) assigneeDropdown.style.display = 'none';
+    if (!priorityBtn.contains(e.target) && !priorityDropdown.contains(e.target)) priorityDropdown.style.display = 'none';
   });
 
   // Save card
@@ -992,6 +1043,7 @@ function setupModals() {
           start_date: startDate,
           due_date: dueDate,
           assigned_user_ids: assigneesArr,
+          priority: currentPriority,
         });
         showToast('Cartão criado!', 'success');
       } else {
@@ -1003,6 +1055,7 @@ function setupModals() {
           start_date: startDate,
           due_date: dueDate,
           assigned_user_ids: assigneesArr,
+          priority: currentPriority,
         });
         showToast('Cartão salvo!', 'success');
       }

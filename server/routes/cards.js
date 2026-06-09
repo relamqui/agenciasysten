@@ -27,7 +27,7 @@ const upload = multer({ storage: storage });
 // POST /api/cards — criar cartão
 router.post('/', auth, async (req, res, next) => {
   try {
-    const { title, list_id, description, start_date, due_date, assigned_user_ids } = req.body;
+    const { title, list_id, description, start_date, due_date, assigned_user_ids, priority } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Título é obrigatório' });
@@ -44,8 +44,8 @@ router.post('/', auth, async (req, res, next) => {
       );
 
       const result = await client.query(
-        'INSERT INTO cards (title, list_id, position, description, start_date, due_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [title.trim(), list_id, maxPos.rows[0].next_pos, description || '', start_date || null, due_date || null]
+        'INSERT INTO cards (title, list_id, position, description, start_date, due_date, priority) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [title.trim(), list_id, maxPos.rows[0].next_pos, description || '', start_date || null, due_date || null, priority || 'normal']
       );
       
       newCard = result.rows[0];
@@ -109,7 +109,7 @@ router.get('/:id', auth, async (req, res, next) => {
 // PUT /api/cards/:id — atualizar cartão
 router.put('/:id', auth, async (req, res, next) => {
   try {
-    const { title, description, start_date, due_date, is_completed, assigned_user_ids } = req.body;
+    const { title, description, start_date, due_date, is_completed, assigned_user_ids, priority } = req.body;
 
     const client = await pool.connect();
     let updatedCard;
@@ -122,9 +122,10 @@ router.put('/:id', auth, async (req, res, next) => {
           description = COALESCE($2, description),
           start_date = $3,
           due_date = $4,
-          is_completed = COALESCE($5, is_completed)
-        WHERE id = $6 RETURNING *`,
-        [title, description, start_date || null, due_date || null, is_completed, req.params.id]
+          is_completed = COALESCE($5, is_completed),
+          priority = COALESCE($6, priority)
+        WHERE id = $7 RETURNING *`,
+        [title, description, start_date || null, due_date || null, is_completed, priority || null, req.params.id]
       );
 
       if (result.rows.length === 0) {

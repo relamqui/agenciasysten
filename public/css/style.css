@@ -505,7 +505,78 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
   margin-top: 32px;
 }
 
+/* ===== PRIORITY TAGS ===== */
+.cu-priority-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2a2b2f;
+  border: 1px solid #3f3f46;
+  color: #e4e4e7;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.cu-priority-btn:hover { background: #3f3f46; }
+
+.priority-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.priority-badge {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+}
+
+/* ===== QUILL DESCRIPTION FIX ===== */
+.cu-description-area {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.cu-description-area .ql-toolbar {
+  background: #2a2b2f;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 6px 6px 0 0;
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.cu-description-area .ql-container {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #3f3f46 !important;
+  border-top: none !important;
+  border-radius: 0 0 6px 6px;
+  min-height: 120px;
+  color: var(--text);
+}
+.cu-description-area .ql-editor { min-height: 120px; color: #d1d5db; }
+.cu-description-area .ql-editor.ql-blank::before { color: #52525b; }
+.cu-description-area .ql-snow .ql-stroke { stroke: #a1a1aa; }
+.cu-description-area .ql-snow .ql-fill { fill: #a1a1aa; }
+.cu-description-area .ql-snow .ql-picker { color: #a1a1aa; }
+.ql-toolbar .ql-formats { flex-wrap: wrap; }
+
+/* ===== MODAL FOOTER ===== */
+.cu-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 32px;
+  border-top: 1px solid #2a2b2f;
+  background: #171717;
+}
+.cu-footer .btn { margin-top: 0; }
+
 /* ===== BOARD TABS ===== */
+
 .board-tabs {
   display: flex;
   gap: 24px;
