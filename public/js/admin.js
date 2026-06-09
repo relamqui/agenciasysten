@@ -73,7 +73,9 @@ function renderUsers() {
           ${!u.perm_agencia && !u.perm_financeiro && !u.perm_usuarios ? '<span style="color:var(--text-sub);">—</span>' : ''}
         </td>
         <td style="color:var(--text);font-size:13px;">
+          ${isAdmin && API.getUser().role !== 'admin' ? '<span style="color:var(--text-sub);font-size:11px;">Restrito</span>' : `
           <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="openAccessModal(${u.id})">Ver quadros</button>
+          `}
         </td>
         <td>
           <div class="row-actions">
