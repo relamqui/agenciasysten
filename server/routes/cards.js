@@ -27,10 +27,13 @@ const upload = multer({ storage: storage });
 // POST /api/cards — criar cartão
 router.post('/', auth, async (req, res, next) => {
   try {
-    const { title, list_id, description, start_date, due_date, assigned_user_ids, priority } = req.body;
+    const { title, list_id, description, start_date, due_date, assigned_user_ids, priority, is_personal } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Título é obrigatório' });
+    }
+    if (!is_personal && !list_id) {
+      return res.status(400).json({ error: 'list_id é obrigatório para tarefas normais' });
     }
 
     const client = await pool.connect();
@@ -38,14 +41,18 @@ router.post('/', auth, async (req, res, next) => {
     try {
       await client.query('BEGIN');
       
-      const maxPos = await client.query(
-        'SELECT COALESCE(MAX(position), -1) + 1 as next_pos FROM cards WHERE list_id = $1',
-        [list_id]
-      );
+      let nextPos = 0;
+      if (list_id) {
+        const maxPos = await client.query(
+          'SELECT COALESCE(MAX(position), -1) + 1 as next_pos FROM cards WHERE list_id = $1',
+          [list_id]
+        );
+        nextPos = maxPos.rows[0].next_pos;
+      }
 
       const result = await client.query(
-        'INSERT INTO cards (title, list_id, position, description, start_date, due_date, priority) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [title.trim(), list_id, maxPos.rows[0].next_pos, description || '', start_date || null, due_date || null, priority || 'normal']
+        'INSERT INTO cards (title, list_id, position, description, start_date, due_date, priority, is_personal, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+        [title.trim(), list_id || null, nextPos, description || '', start_date || null, due_date || null, priority || 'normal', is_personal ? true : false, is_personal ? req.userId : null]
       );
       
       newCard = result.rows[0];

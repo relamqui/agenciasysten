@@ -229,14 +229,19 @@ function renderMyCards() {
     const overdueClass = overdue ? 'my-card-overdue' : '';
     const dateStr = formatCardDateRange(card.start_date, card.due_date);
 
+    const clickAction = card.is_personal ? `openPersonalTaskModal(${card.id})` : `window.location.href='/board?id=${card.board_id}'`;
+    const bgColor = card.is_personal ? '#a855f7' : (card.list_color || card.board_background);
+    const bTag = card.is_personal ? 'Agenda Pessoal' : escapeHtml(card.board_title);
+    const lTag = card.is_personal ? 'Individual' : escapeHtml(card.list_title);
+
     return `
-      <div class="my-card-item ${doneClass} ${overdueClass}" onclick="window.location.href='/board?id=${card.board_id}'">
-        <div class="my-card-board-bar" style="background:${card.list_color || card.board_background}"></div>
+      <div class="my-card-item ${doneClass} ${overdueClass}" onclick="${clickAction}">
+        <div class="my-card-board-bar" style="background:${bgColor}"></div>
         <div class="my-card-content">
           <div class="my-card-title">${escapeHtml(card.title)}</div>
           <div class="my-card-meta">
-            <span class="my-card-board-tag">${escapeHtml(card.board_title)}</span>
-            <span class="my-card-list-tag">${escapeHtml(card.list_title)}</span>
+            <span class="my-card-board-tag">${bTag}</span>
+            <span class="my-card-list-tag">${lTag}</span>
             ${dateStr ? `<span class="my-card-date ${overdueClass}">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               ${dateStr}
@@ -344,12 +349,16 @@ function renderCalendar() {
         bar.className = `cal-event-bar${overdue ? ' overdue' : ''}${card.is_completed ? ' done' : ''}`;
         bar.style.gridColumn = `${colStart} / ${colEnd + 1}`;
         bar.style.gridRow = lane + 1;
-        bar.style.background = card.list_color || card.board_background;
+        bar.style.background = card.is_personal ? '#a855f7' : (card.list_color || card.board_background);
 
         const timeStr = s ? s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-        bar.title = `${card.title}\n${card.board_title}${timeStr ? '\n⏰ ' + timeStr : ''}`;
+        const boardT = card.is_personal ? 'Agenda Pessoal' : card.board_title;
+        bar.title = `${card.title}\n${boardT}${timeStr ? '\n⏰ ' + timeStr : ''}`;
         bar.innerHTML = `<span class="cal-bar-text">${timeStr ? `<b>${timeStr}</b> ` : ''}${escapeHtml(card.title)}</span>`;
-        bar.onclick = () => window.location.href = `/board?id=${card.board_id}`;
+        bar.onclick = () => {
+          if (card.is_personal) openPersonalTaskModal(card.id);
+          else window.location.href = `/board?id=${card.board_id}`;
+        };
         eventsLayer.appendChild(bar);
       });
     }
@@ -379,4 +388,86 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// --- PERSONAL TASK LOGIC ---
+const personalModal = document.getElementById('personal-task-modal');
+if (document.getElementById('open-personal-task-modal-btn')) {
+  document.getElementById('open-personal-task-modal-btn').addEventListener('click', () => {
+    openPersonalTaskModal();
+  });
+  document.getElementById('close-personal-modal').addEventListener('click', () => {
+    personalModal.classList.remove('show');
+  });
+
+  async function openPersonalTaskModal(id = null) {
+    const titleInput = document.getElementById('personal-task-title');
+    const descInput = document.getElementById('personal-task-desc');
+    const startInput = document.getElementById('personal-task-start');
+    const dueInput = document.getElementById('personal-task-due');
+    const idInput = document.getElementById('personal-task-id');
+    const delBtn = document.getElementById('delete-personal-task-btn');
+    const titleEl = document.getElementById('personal-task-modal-title');
+
+    titleInput.value = '';
+    descInput.value = '';
+    startInput.value = '';
+    dueInput.value = '';
+    idInput.value = '';
+    delBtn.style.display = 'none';
+    titleEl.textContent = 'Nova Tarefa Pessoal';
+
+    if (id) {
+      titleEl.textContent = 'Editar Tarefa Pessoal';
+      delBtn.style.display = 'block';
+      idInput.value = id;
+      try {
+        const card = await API.get(`/cards/${id}`);
+        titleInput.value = card.title;
+        descInput.value = card.description || '';
+        startInput.value = toDatetimeLocalValue(card.start_date);
+        dueInput.value = toDatetimeLocalValue(card.due_date);
+      } catch (e) { showToast(e.message, 'error'); return; }
+    }
+
+    personalModal.classList.add('show');
+  }
+
+  document.getElementById('save-personal-task-btn').addEventListener('click', async () => {
+    const id = document.getElementById('personal-task-id').value;
+    const title = document.getElementById('personal-task-title').value.trim();
+    const desc = document.getElementById('personal-task-desc').value.trim();
+    const start = toLocalISOString(document.getElementById('personal-task-start').value);
+    const due = toLocalISOString(document.getElementById('personal-task-due').value);
+
+    if (!title) return showToast('O título é obrigatório', 'error');
+
+    try {
+      if (id) {
+        await API.put(`/cards/${id}`, {
+          title, description: desc, start_date: start, due_date: due
+        });
+        showToast('Tarefa atualizada!', 'success');
+      } else {
+        await API.post(`/cards`, {
+          title, description: desc, start_date: start, due_date: due, is_personal: true
+        });
+        showToast('Tarefa criada!', 'success');
+      }
+      personalModal.classList.remove('show');
+      await loadMyCards();
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+
+  document.getElementById('delete-personal-task-btn').addEventListener('click', async () => {
+    const id = document.getElementById('personal-task-id').value;
+    if (!id) return;
+    if (!confirm('Tem certeza que deseja excluir esta tarefa pessoal?')) return;
+    try {
+      await API.delete(`/cards/${id}`);
+      showToast('Tarefa excluída', 'success');
+      personalModal.classList.remove('show');
+      await loadMyCards();
+    } catch (e) { showToast(e.message, 'error'); }
+  });
 }

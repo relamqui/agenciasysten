@@ -52,6 +52,7 @@
             <button class="cal-nav-btn" id="cal-prev">&#8249;</button>
             <span id="cal-month-label" style="font-weight:600; font-size:15px; min-width:160px; text-align:center;"></span>
             <button class="cal-nav-btn" id="cal-next">&#8250;</button>
+            <button class="btn btn-primary" id="open-personal-task-modal-btn" style="margin-left:16px; padding:6px 12px; font-size:12px;">+ Tarefa Pessoal</button>
           </div>
         </div>
         <div class="cal-weekdays">
@@ -62,6 +63,43 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- PERSONAL TASK MODAL -->
+  <div class="modal-overlay clickup-overlay" id="personal-task-modal">
+    <div class="modal-content" style="max-width:500px;padding:24px;">
+      <button class="btn-icon modal-close" id="close-personal-modal">✕</button>
+      <h2 id="personal-task-modal-title" style="font-size:18px;font-weight:700;margin-bottom:16px;">Nova Tarefa Pessoal</h2>
+      
+      <input type="hidden" id="personal-task-id">
+      
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="personal-task-title" placeholder="O que você precisa fazer?" required style="background:rgba(255,255,255,0.03);border:1px solid #333;color:#fff;">
+      </div>
+
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="personal-task-desc" rows="4" placeholder="Detalhes (opcional)..." style="width:100%;background:rgba(255,255,255,0.03);border:1px solid #333;border-radius:6px;color:#fff;padding:8px;outline:none;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div class="form-group">
+          <label>Início</label>
+          <input type="datetime-local" id="personal-task-start" style="background:rgba(255,255,255,0.03);border:1px solid #333;color:#fff;">
+        </div>
+        <div class="form-group">
+          <label>Entrega</label>
+          <input type="datetime-local" id="personal-task-due" style="background:rgba(255,255,255,0.03);border:1px solid #333;color:#fff;">
+        </div>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn" id="delete-personal-task-btn" style="display:none;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.2);">Excluir</button>
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="save-personal-task-btn">Salvar Tarefa</button>
+      </div>
+    </div>
   </div>
 
   <!-- CREATE BOARD MODAL -->

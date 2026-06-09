@@ -5,11 +5,11 @@ const { DEFAULT_LABELS } = require('../utils/helpers');
 
 const router = express.Router();
 
-// GET /api/boards/my-cards — cartões onde o usuário é responsável
+// GET /api/boards/my-cards — cartões onde o usuário é responsável ou tarefas pessoais
 router.get('/my-cards', auth, async (req, res, next) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.title, c.description, c.start_date, c.due_date, c.is_completed, c.created_at,
+      SELECT c.id, c.title, c.description, c.start_date, c.due_date, c.is_completed, c.created_at, c.is_personal, c.owner_id,
         l.title as list_title, l.color as list_color,
         b.id as board_id, b.title as board_title, b.background as board_background,
         COALESCE(
@@ -17,13 +17,24 @@ router.get('/my-cards', auth, async (req, res, next) => {
            FROM card_assignees ca2 JOIN users u ON ca2.user_id = u.id WHERE ca2.card_id = c.id), '[]'
         ) as assignees
       FROM cards c
-      JOIN lists l ON c.list_id = l.id
-      JOIN boards b ON l.board_id = b.id
-      JOIN card_assignees ca ON c.id = ca.card_id
-      WHERE ca.user_id = $1
+      LEFT JOIN lists l ON c.list_id = l.id
+      LEFT JOIN boards b ON l.board_id = b.id
+      LEFT JOIN card_assignees ca ON c.id = ca.card_id
+      WHERE ca.user_id = $1 OR (c.is_personal = true AND c.owner_id = $1)
       ORDER BY c.due_date ASC NULLS LAST, c.created_at DESC
     `, [req.userId]);
-    res.json(result.rows);
+    // Filter duplicates because of LEFT JOIN card_assignees possibly returning multiple rows if assigned to multiple but here we filter by user_id
+    // Actually ca.user_id = $1 restricts to 1 row per card mostly, but let's distinct in JS or SQL.
+    // Better SQL:
+    const uniqueCards = [];
+    const seen = new Set();
+    for (const row of result.rows) {
+      if (!seen.has(row.id)) {
+        seen.add(row.id);
+        uniqueCards.push(row);
+      }
+    }
+    res.json(uniqueCards);
   } catch (err) {
     next(err);
   }

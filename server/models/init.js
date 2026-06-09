@@ -76,6 +76,8 @@ const initDatabase = async () => {
     await client.query(`ALTER TABLE cards ADD COLUMN IF NOT EXISTS start_date TIMESTAMP WITH TIME ZONE;`);
     await client.query(`ALTER TABLE cards ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'normal';`);
     await client.query(`ALTER TABLE cards ADD COLUMN IF NOT EXISTS assigned_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`);
+    await client.query(`ALTER TABLE cards ADD COLUMN IF NOT EXISTS is_personal BOOLEAN DEFAULT FALSE;`);
+    await client.query(`ALTER TABLE cards ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`);
     // Migrar due_date e start_date de DATE para TIMESTAMP se ainda forem DATE
     await client.query(`
       DO $$ BEGIN
