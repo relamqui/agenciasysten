@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const user = API.getUser();
-  if (user.role !== 'admin') {
+  if (user.role !== 'admin' && !user.perm_usuarios) {
     window.location.href = '/dashboard';
     return;
   }
@@ -68,20 +68,23 @@ function renderUsers() {
         <td>${badge}</td>
         <td style="font-size:12px;">
           ${u.perm_agencia ? '<span class="badge badge-admin" style="font-size:10px;padding:2px 8px;margin-right:4px;">Agência</span>' : ''}
-          ${u.perm_financeiro ? '<span class="badge badge-user" style="font-size:10px;padding:2px 8px;">Financeiro</span>' : ''}
-          ${!u.perm_agencia && !u.perm_financeiro ? '<span style="color:var(--text-sub);">—</span>' : ''}
+          ${u.perm_financeiro ? '<span class="badge badge-user" style="font-size:10px;padding:2px 8px;margin-right:4px;">Financeiro</span>' : ''}
+          ${u.perm_usuarios ? '<span class="badge badge-admin" style="font-size:10px;padding:2px 8px;background:rgba(255,165,0,0.2);color:orange;border-color:orange;">Usuários</span>' : ''}
+          ${!u.perm_agencia && !u.perm_financeiro && !u.perm_usuarios ? '<span style="color:var(--text-sub);">—</span>' : ''}
         </td>
         <td style="color:var(--text);font-size:13px;">
           <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="openAccessModal(${u.id})">Ver quadros</button>
         </td>
         <td>
           <div class="row-actions">
+            ${isAdmin && API.getUser().role !== 'admin' ? '' : `
             <button class="action-btn action-btn-edit" title="Editar usuário" onclick="openEditUserModal(${u.id})">
               <span class="material-symbols-outlined" style="font-size:18px;">edit</span>
             </button>
             <button class="action-btn action-btn-del" title="Excluir usuário" onclick="deleteUser(${u.id})">
               <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
             </button>
+            `}
           </div>
         </td>
       </tr>
@@ -98,6 +101,14 @@ const createUserForm = document.getElementById('create-user-form');
 function openCreateUserModal() {
   userModal.classList.add('active');
   createUserForm.reset();
+
+  const roleSelect = document.getElementById('user-role');
+  if (API.getUser().role !== 'admin') {
+    roleSelect.value = 'user';
+    roleSelect.disabled = true;
+  } else {
+    roleSelect.disabled = false;
+  }
 
   const listEl = document.getElementById('create-user-boards-list');
   if (!listEl) return;
@@ -130,9 +141,10 @@ createUserForm.addEventListener('submit', async (e) => {
   const boardIds = Array.from(checked).map(cb => parseInt(cb.value));
   const perm_agencia = document.getElementById('user-perm-agencia')?.checked || false;
   const perm_financeiro = document.getElementById('user-perm-financeiro')?.checked || false;
+  const perm_usuarios = document.getElementById('user-perm-usuarios')?.checked || false;
 
   try {
-    const newUser = await API.post('/admin/users', { name, email, password, role, boardIds, perm_agencia, perm_financeiro });
+    const newUser = await API.post('/admin/users', { name, email, password, role, boardIds, perm_agencia, perm_financeiro, perm_usuarios });
     users.unshift(newUser);
     renderUsers();
     closeUserModal();
@@ -155,10 +167,20 @@ function openEditUserModal(id) {
   document.getElementById('edit-user-email').value    = u.email;
   document.getElementById('edit-user-role').value     = u.role;
   document.getElementById('edit-user-password').value = '';
+  
+  const roleSelect = document.getElementById('edit-user-role');
+  if (API.getUser().role !== 'admin') {
+    roleSelect.disabled = true;
+  } else {
+    roleSelect.disabled = false;
+  }
+
   const permAgEl = document.getElementById('edit-user-perm-agencia');
   const permFinEl = document.getElementById('edit-user-perm-financeiro');
+  const permUsrEl = document.getElementById('edit-user-perm-usuarios');
   if (permAgEl) permAgEl.checked = !!u.perm_agencia;
   if (permFinEl) permFinEl.checked = !!u.perm_financeiro;
+  if (permUsrEl) permUsrEl.checked = !!u.perm_usuarios;
 
   editUserModal.classList.add('active');
 }
@@ -176,9 +198,10 @@ editUserForm.addEventListener('submit', async (e) => {
   const role     = document.getElementById('edit-user-role').value;
   const perm_agencia = document.getElementById('edit-user-perm-agencia')?.checked || false;
   const perm_financeiro = document.getElementById('edit-user-perm-financeiro')?.checked || false;
+  const perm_usuarios = document.getElementById('edit-user-perm-usuarios')?.checked || false;
 
   try {
-    const updated = await API.put(`/admin/users/${id}`, { name, email, password, role, perm_agencia, perm_financeiro });
+    const updated = await API.put(`/admin/users/${id}`, { name, email, password, role, perm_agencia, perm_financeiro, perm_usuarios });
     const idx = users.findIndex(u => u.id === parseInt(id));
     if (idx !== -1) users[idx] = { ...users[idx], ...updated };
     renderUsers();

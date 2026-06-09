@@ -31,7 +31,7 @@ function renderSidebar(activePage) {
     });
   }
 
-  if (isAdmin) {
+  if (isAdmin || user.perm_usuarios) {
     modules.push({
       id: 'admin',
       label: 'Usuários',

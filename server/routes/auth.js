@@ -56,7 +56,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const result = await pool.query(
-      'SELECT id, name, email, password_hash, avatar_color, role, perm_agencia, perm_financeiro FROM users WHERE email = $1',
+      'SELECT id, name, email, password_hash, avatar_color, role, perm_agencia, perm_financeiro, perm_usuarios FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
 
@@ -88,7 +88,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/me', auth, async (req, res, next) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, avatar_color, role, perm_agencia, perm_financeiro, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, avatar_color, role, perm_agencia, perm_financeiro, perm_usuarios, created_at FROM users WHERE id = $1',
       [req.userId]
     );
 
