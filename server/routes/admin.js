@@ -7,11 +7,19 @@ const { getRandomColor } = require('../utils/helpers');
 const router = express.Router();
 
 // Middleware to check admin role or perm_usuarios
-const canManageUsers = (req, res, next) => {
-  if (req.role !== 'admin' && !req.perm_usuarios) {
-    return res.status(403).json({ error: 'Acesso restrito para administradores ou usuários com permissão' });
+const canManageUsers = async (req, res, next) => {
+  if (req.role === 'admin') {
+    return next();
   }
-  next();
+  try {
+    const userResult = await pool.query('SELECT perm_usuarios FROM users WHERE id = $1', [req.userId]);
+    if (userResult.rows.length > 0 && userResult.rows[0].perm_usuarios) {
+      return next();
+    }
+    return res.status(403).json({ error: 'Acesso restrito para administradores ou usuários com permissão' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erro ao verificar permissões' });
+  }
 };
 
 // GET /api/admin/users
