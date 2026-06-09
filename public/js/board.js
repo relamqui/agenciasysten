@@ -906,6 +906,19 @@ function setupModals() {
     }
   });
 
+  // Color swatches for Empresa
+  const swatches = document.querySelectorAll('#label-color-swatches .lcs');
+  const colorInput = document.getElementById('new-label-color');
+  // Mark first as selected by default
+  if (swatches.length > 0) swatches[6].classList.add('selected'); // roxo default
+  swatches.forEach(sw => {
+    sw.addEventListener('click', () => {
+      swatches.forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      colorInput.value = sw.dataset.color;
+    });
+  });
+
   // Status dropdown toggle
   const statusBtn = document.getElementById('cu-status-btn');
   const statusDropdown = document.getElementById('cu-status-dropdown');

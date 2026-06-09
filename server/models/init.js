@@ -265,7 +265,54 @@ const initDatabase = async () => {
       }
     }
 
+    // ── MIGRATION: Adicionar "Tabela alteração" nos boards Audiovisual e Designer ──
+    const boardInserts = [
+      {
+        boardTitle: 'Audiovisual',
+        afterList:  'Vídeos para editar',
+        newList:    'Tabela alteração',
+      },
+      {
+        boardTitle: 'Designer',
+        afterList:  'Pendente',
+        newList:    'Tabela alteração',
+      },
+    ];
+
+    for (const item of boardInserts) {
+      const boardRes = await client.query(
+        "SELECT id FROM boards WHERE title = $1 AND owner_id IS NULL",
+        [item.boardTitle]
+      );
+      if (boardRes.rows.length === 0) continue;
+      const bId = boardRes.rows[0].id;
+
+      const exists = await client.query(
+        "SELECT id FROM lists WHERE board_id = $1 AND title = $2",
+        [bId, item.newList]
+      );
+      if (exists.rows.length > 0) continue; // já existe
+
+      const afterRes = await client.query(
+        "SELECT position FROM lists WHERE board_id = $1 AND title = $2",
+        [bId, item.afterList]
+      );
+      if (afterRes.rows.length === 0) continue;
+
+      const insertPos = afterRes.rows[0].position + 1;
+      await client.query(
+        "UPDATE lists SET position = position + 1 WHERE board_id = $1 AND position >= $2",
+        [bId, insertPos]
+      );
+      await client.query(
+        "INSERT INTO lists (title, board_id, position, color) VALUES ($1, $2, $3, $4)",
+        [item.newList, bId, insertPos, '#FDCB6E']
+      );
+      console.log(`✅ Lista "${item.newList}" adicionada ao board "${item.boardTitle}"`);
+    }
+
     await client.query('COMMIT');
+
     console.log('✅ Database tables initialized');
   } catch (err) {
     await client.query('ROLLBACK');

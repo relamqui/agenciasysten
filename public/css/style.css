@@ -450,8 +450,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
 }
 
 .cu-description-area {
-  display: flex;
-  align-items: flex-start;
+  display: block;
 }
 
 .cu-description-input {
@@ -537,11 +536,31 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
   border-radius: 12px !important;
 }
 
+/* ===== EMPRESA LABEL COLOR SWATCHES ===== */
+.label-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lcs {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.lcs:hover { transform: scale(1.2); }
+.lcs.selected { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.4); transform: scale(1.15); }
+
 /* ===== QUILL DESCRIPTION FIX ===== */
 .cu-description-area {
+  display: block;
   background: transparent;
   border: none;
   padding: 0;
+  width: 100%;
 }
 .cu-description-area .ql-toolbar {
   background: #2a2b2f;
@@ -549,6 +568,8 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
   border-radius: 6px 6px 0 0;
   flex-wrap: wrap;
   overflow: visible;
+  width: 100%;
+  box-sizing: border-box;
 }
 .cu-description-area .ql-container {
   background: rgba(255,255,255,0.03);
@@ -557,7 +578,10 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
   border-radius: 0 0 6px 6px;
   min-height: 120px;
   color: var(--text);
+  width: 100%;
+  box-sizing: border-box;
 }
+#card-description-editor { width: 100%; box-sizing: border-box; }
 .cu-description-area .ql-editor { min-height: 120px; color: #d1d5db; }
 .cu-description-area .ql-editor.ql-blank::before { color: #52525b; }
 .cu-description-area .ql-snow .ql-stroke { stroke: #a1a1aa; }

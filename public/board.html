@@ -161,16 +161,36 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
               Empresa
             </div>
-            <div class="cu-prop-value" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="cu-prop-value" style="display:flex; flex-direction:column; gap:10px;">
+              <!-- Tags das empresas atribuídas -->
               <div class="labels-grid" id="card-labels-grid" style="min-height:24px;"></div>
-              
-              <div id="manage-labels-container" style="display:none; gap:6px; align-items:center; background:rgba(255,255,255,0.02); padding:6px; border-radius:4px;">
-                 <input type="text" id="new-label-name" placeholder="Nova empresa" style="flex:1; padding:4px 6px; font-size:12px; border-radius:4px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white;">
-                 <input type="color" id="new-label-color" value="#6C5CE7" style="width:24px; height:24px; padding:0; border:none; border-radius:4px; cursor:pointer;">
-                 <button class="btn btn-primary btn-sm" id="create-label-btn" style="padding:4px 8px; font-size:11px;">Criar</button>
+
+              <!-- Formulário de nova empresa (só para admins) -->
+              <div id="manage-labels-container" style="display:none; flex-direction:column; gap:8px; background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.07);">
+                <div style="font-size:11px; color:#a1a1aa; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Nova Empresa</div>
+                <input type="text" id="new-label-name" placeholder="Nome da empresa..." style="width:100%; padding:6px 10px; font-size:13px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:white; outline:none; box-sizing:border-box;">
+                <div style="font-size:11px; color:#a1a1aa; margin-top:2px;">Cor da etiqueta:</div>
+                <div class="label-color-swatches" id="label-color-swatches">
+                  <div class="lcs" data-color="#e74c3c" style="background:#e74c3c;" title="Vermelho"></div>
+                  <div class="lcs" data-color="#e67e22" style="background:#e67e22;" title="Laranja"></div>
+                  <div class="lcs" data-color="#f1c40f" style="background:#f1c40f;" title="Amarelo"></div>
+                  <div class="lcs" data-color="#2ecc71" style="background:#2ecc71;" title="Verde"></div>
+                  <div class="lcs" data-color="#1abc9c" style="background:#1abc9c;" title="Teal"></div>
+                  <div class="lcs" data-color="#3498db" style="background:#3498db;" title="Azul"></div>
+                  <div class="lcs" data-color="#6C5CE7" style="background:#6C5CE7;" title="Roxo"></div>
+                  <div class="lcs" data-color="#e91e63" style="background:#e91e63;" title="Rosa"></div>
+                  <div class="lcs" data-color="#607d8b" style="background:#607d8b;" title="Cinza azul"></div>
+                  <div class="lcs" data-color="#795548" style="background:#795548;" title="Marrom"></div>
+                  <div class="lcs" data-color="#fd79a8" style="background:#fd79a8;" title="Rosa claro"></div>
+                  <div class="lcs" data-color="#00b894" style="background:#00b894;" title="Verde claro"></div>
+                </div>
+                <!-- Hidden color input for JS compatibility -->
+                <input type="hidden" id="new-label-color" value="#6C5CE7">
+                <button class="btn btn-primary btn-sm" id="create-label-btn" style="margin-top:4px; width:100%;">+ Criar Empresa</button>
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="cu-divider"></div>
