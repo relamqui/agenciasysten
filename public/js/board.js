@@ -767,12 +767,6 @@ async function openCardModal(cardId, list) {
     renderCardLabels(card.labels || []);
     loadAttachments(cardId);
 
-    if (canManageLabels) {
-      document.getElementById('manage-labels-container').style.display = 'flex';
-    } else {
-      document.getElementById('manage-labels-container').style.display = 'none';
-    }
-
     document.getElementById('card-modal').classList.add('show');
   } catch (err) {
     showToast(err.message, 'error');
