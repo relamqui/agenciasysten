@@ -1341,7 +1341,7 @@ async function loadAttachments(cardId) {
   // Força tamanho menor no botão caso o HTML esteja em cache
   const uploadInput = document.getElementById('card-attachment-upload');
   if (uploadInput && uploadInput.parentElement) {
-    uploadInput.parentElement.className = 'btn btn-secondary btn-sm';
+    uploadInput.parentElement.className = 'btn btn-primary btn-sm';
     uploadInput.parentElement.style.width = 'fit-content';
     uploadInput.parentElement.style.padding = '4px 12px';
     uploadInput.parentElement.style.margin = '0';
