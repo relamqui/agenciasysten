@@ -29,9 +29,7 @@ router.post('/', auth, async (req, res, next) => {
   try {
     const { title, list_id, description, start_date, due_date, assigned_user_ids, priority, is_personal } = req.body;
 
-    if (!title || !title.trim()) {
-      return res.status(400).json({ error: 'Título é obrigatório' });
-    }
+    const finalTitle = title && title.trim() ? title.trim() : 'Sem título';
     if (!is_personal && !list_id) {
       return res.status(400).json({ error: 'list_id é obrigatório para tarefas normais' });
     }
@@ -52,7 +50,7 @@ router.post('/', auth, async (req, res, next) => {
 
       const result = await client.query(
         'INSERT INTO cards (title, list_id, position, description, start_date, due_date, priority, is_personal, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-        [title.trim(), list_id || null, nextPos, description || '', start_date || null, due_date || null, priority || 'normal', is_personal ? true : false, is_personal ? req.userId : null]
+        [finalTitle, list_id || null, nextPos, description || '', start_date || null, due_date || null, priority || 'normal', is_personal ? true : false, is_personal ? req.userId : null]
       );
       
       newCard = result.rows[0];

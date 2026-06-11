@@ -1246,10 +1246,6 @@ function setupModals() {
   // Save card
   document.getElementById('save-card-btn').addEventListener('click', async () => {
     const title = document.getElementById('card-title-input').value.trim();
-    if (!title) {
-      showToast('O título é obrigatório', 'error');
-      return;
-    }
 
     const startDate = toLocalISOString(document.getElementById('card-start-date').value);
     const dueDate   = toLocalISOString(document.getElementById('card-due-date').value);
@@ -1363,11 +1359,6 @@ async function loadAttachments(cardId) {
 async function uploadAttachments(e) {
   if (!currentCardId) {
     const title = document.getElementById('card-title-input').value.trim();
-    if (!title) {
-      showToast('Digite um título para a tarefa primeiro antes de adicionar arquivos', 'error');
-      e.target.value = '';
-      return;
-    }
     try {
       const startDate = toLocalISOString(document.getElementById('card-start-date').value);
       const dueDate   = toLocalISOString(document.getElementById('card-due-date').value);
