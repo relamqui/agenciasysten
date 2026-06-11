@@ -1331,13 +1331,28 @@ function setupModals() {
 
 async function loadAttachments(cardId) {
   const list = document.getElementById('attachments-list');
+  
+  // Força estilo de grade caso o HTML esteja em cache
+  list.style.display = 'grid';
+  list.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+  list.style.gap = '12px';
   list.innerHTML = '';
+  
+  // Força tamanho menor no botão caso o HTML esteja em cache
+  const uploadInput = document.getElementById('card-attachment-upload');
+  if (uploadInput && uploadInput.parentElement) {
+    uploadInput.parentElement.className = 'btn btn-secondary btn-sm';
+    uploadInput.parentElement.style.width = 'fit-content';
+    uploadInput.parentElement.style.padding = '4px 12px';
+    uploadInput.parentElement.style.margin = '0';
+  }
+
   if (!cardId) return;
 
   try {
     const attachments = await API.get(`/cards/${cardId}/attachments`);
     if (attachments.length === 0) {
-      list.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Nenhum anexo.</div>';
+      list.innerHTML = '<div style="font-size:12px; color:var(--text-muted); grid-column: 1 / -1;">Nenhum anexo.</div>';
       return;
     }
     list.innerHTML = attachments.map(a => {
@@ -1349,12 +1364,12 @@ async function loadAttachments(cardId) {
         return `
           <div style="position:relative; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
             <a href="${a.file_url}" target="_blank" style="display:block;">
-              <img src="${a.file_url}" style="width:100%; height:120px; object-fit:cover; display:block;" title="${escapeHtml(a.file_name)}" />
+              <img src="${a.file_url}" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" title="${escapeHtml(a.file_name)}" />
             </a>
-            <div style="padding:6px 8px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.4);">
-              <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; font-size:12px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</a>
-              <button class="btn-icon" style="color:#ff7675; margin-left:4px;" onclick="deleteAttachment(${a.id})" title="Excluir">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <div style="padding:6px 8px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.6); position:absolute; bottom:0; left:0; right:0;">
+              <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</a>
+              <button class="btn-icon" style="color:#ff7675; margin-left:4px; width:20px; height:20px;" onclick="deleteAttachment(${a.id})" title="Excluir">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
           </div>
@@ -1362,25 +1377,25 @@ async function loadAttachments(cardId) {
       } else if (isVid) {
         return `
           <div style="position:relative; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
-            <video src="${a.file_url}" controls style="width:100%; height:120px; background:#000; display:block;" title="${escapeHtml(a.file_name)}"></video>
-            <div style="padding:6px 8px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.4);">
-              <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; font-size:12px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</a>
-              <button class="btn-icon" style="color:#ff7675; margin-left:4px;" onclick="deleteAttachment(${a.id})" title="Excluir">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <video src="${a.file_url}" controls style="width:100%; aspect-ratio:1/1; background:#000; display:block; object-fit:cover;" title="${escapeHtml(a.file_name)}"></video>
+            <div style="padding:6px 8px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.6); position:absolute; bottom:0; left:0; right:0;">
+              <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</a>
+              <button class="btn-icon" style="color:#ff7675; margin-left:4px; width:20px; height:20px;" onclick="deleteAttachment(${a.id})" title="Excluir">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
           </div>
         `;
       } else {
         return `
-          <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:4px; border:1px solid rgba(255,255,255,0.05); height: 120px; flex-direction: column;">
+          <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:4px; border:1px solid rgba(255,255,255,0.05); aspect-ratio:1/1; flex-direction: column;">
             <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:13px; flex:1; overflow:hidden; width:100%;" title="${escapeHtml(a.file_name)}">
               <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
             </a>
             <div style="padding:6px 0 0 0; display:flex; align-items:center; justify-content:space-between; width: 100%; border-top: 1px solid rgba(255,255,255,0.05);">
-              <span style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</span>
-              <button class="btn-icon" style="color:#ff7675; margin-left:4px;" onclick="deleteAttachment(${a.id})" title="Excluir">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span style="font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</span>
+              <button class="btn-icon" style="color:#ff7675; margin-left:4px; width:20px; height:20px;" onclick="deleteAttachment(${a.id})" title="Excluir">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
           </div>
