@@ -179,6 +179,8 @@ async function initDesignerBoardFeature() {
         const option = document.createElement('option');
         option.value = d.id;
         option.textContent = d.name;
+        option.style.background = '#1e1e2a';
+        option.style.color = '#fff';
         designerFilter.appendChild(option);
       });
 
@@ -219,12 +221,14 @@ function openDesignerModal() {
         const designerFilter = document.getElementById('designer-filter');
         if (designerFilter) {
           const currentValue = designerFilter.value;
-          designerFilter.innerHTML = '<option value="all">Todos os designers</option>';
+          designerFilter.innerHTML = '<option value="all" style="background:#1e1e2a; color:#fff;">Todos os designers</option>';
           const designers = allUsers.filter(u => u.is_designer);
           designers.forEach(d => {
             const option = document.createElement('option');
             option.value = d.id;
             option.textContent = d.name;
+            option.style.background = '#1e1e2a';
+            option.style.color = '#fff';
             designerFilter.appendChild(option);
           });
           // Reseta a seleção ou volta para o que estava
@@ -1302,10 +1306,14 @@ function setupModals() {
 
   // Member modal
   const memberModal = document.getElementById('member-modal');
-  document.getElementById('add-member-btn').addEventListener('click', async () => {
-    memberModal.classList.add('show');
-    await loadMembers();
-  });
+  const addMemberBtn = document.getElementById('add-member-btn');
+  if (addMemberBtn) {
+    addMemberBtn.addEventListener('click', async () => {
+      if (boardData && boardData.title === 'Designer') return;
+      memberModal.classList.add('show');
+      await loadMembers();
+    });
+  }
   document.getElementById('close-member-modal').addEventListener('click', () => memberModal.classList.remove('show'));
   memberModal.addEventListener('click', (e) => { if (e.target === memberModal) memberModal.classList.remove('show'); });
 
