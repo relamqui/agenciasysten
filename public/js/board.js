@@ -933,7 +933,10 @@ function renderCardLabels() {
     const chip = document.createElement('div');
     chip.className = 'label-chip selected';
     chip.style.background = label.color;
-    chip.textContent = label.name || ' ';
+    chip.style.display = 'flex';
+    chip.style.alignItems = 'center';
+    chip.style.gap = '6px';
+    chip.innerHTML = `${escapeHtml(label.name || ' ')} <span style="font-size:14px; line-height:1; opacity:0.8;">&times;</span>`;
     
     // Clicking the chip removes it from the card
     chip.addEventListener('click', async (e) => {
@@ -945,7 +948,7 @@ function renderCardLabels() {
       }
       if (!currentCardId) return;
       try {
-        await API.delete(`/cards/${currentCardId}/labels/${label.id}`);
+        await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
         listsData = await API.get(`/lists/${boardId}/lists`);
         const updatedCard = await API.get(`/cards/${currentCardId}`);
         currentCardLabels = updatedCard.labels || [];
@@ -973,12 +976,21 @@ function renderCardLabels() {
       leftContent.style.display = 'flex';
       leftContent.style.alignItems = 'center';
       leftContent.style.gap = '8px';
+      leftContent.style.flex = '1';
       leftContent.innerHTML = `<span class="priority-dot" style="background:${label.color};"></span> ${escapeHtml(label.name || ' ')}`;
       item.appendChild(leftContent);
       
+      const rightContent = document.createElement('div');
+      rightContent.style.display = 'flex';
+      rightContent.style.alignItems = 'center';
+      rightContent.style.gap = '8px';
+      
       if (isSelected) {
-        item.innerHTML += `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color:#2ecc71;"><polyline points="20 6 9 17 4 12"/></svg>`;
+        rightContent.innerHTML += `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color:#2ecc71;"><polyline points="20 6 9 17 4 12"/></svg>`;
       }
+      
+      rightContent.innerHTML += `<div class="delete-label-btn" style="color:#ff4d6a; font-weight:bold; font-size:16px; line-height:1; padding:0 4px; cursor:pointer;" title="Excluir tag">&times;</div>`;
+      item.appendChild(rightContent);
 
       item.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -990,8 +1002,8 @@ function renderCardLabels() {
         }
         if (!currentCardId) return;
         try {
-          if (isSelected) await API.delete(`/cards/${currentCardId}/labels/${label.id}`);
-          else await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
+          // Both add and remove are toggled via POST /cards/:id/labels
+          await API.post(`/cards/${currentCardId}/labels`, { label_id: label.id });
           
           listsData = await API.get(`/lists/${boardId}/lists`);
           const updatedCard = await API.get(`/cards/${currentCardId}`);
@@ -1000,6 +1012,24 @@ function renderCardLabels() {
           renderLists();
         } catch (err) { showToast(err.message, 'error'); }
       });
+      
+      const deleteBtn = item.querySelector('.delete-label-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm('Deseja excluir esta tag de todos os quadros? Essa ação não pode ser desfeita.')) return;
+          try {
+            await API.delete(`/labels/${label.id}`);
+            labelsData = labelsData.filter(l => l.id !== label.id);
+            if (currentCardLabels.some(l => l.id === label.id)) {
+              currentCardLabels = currentCardLabels.filter(l => l.id !== label.id);
+            }
+            renderCardLabels();
+            renderLists();
+            showToast('Tag excluída com sucesso', 'success');
+          } catch (err) { showToast(err.message, 'error'); }
+        });
+      }
       
       dropdownList.appendChild(item);
     });
