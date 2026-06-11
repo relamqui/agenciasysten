@@ -36,7 +36,7 @@ router.get('/can-manage', auth, async (req, res, next) => {
 
 router.get('/:boardId/labels', auth, async (req, res, next) => {
   try {
-    const result = await pool.query('SELECT * FROM labels WHERE board_id = $1 ORDER BY id ASC', [req.params.boardId]);
+    const result = await pool.query('SELECT DISTINCT ON (LOWER(name)) * FROM labels ORDER BY LOWER(name) ASC, id ASC');
     res.json(result.rows);
   } catch (err) { next(err); }
 });

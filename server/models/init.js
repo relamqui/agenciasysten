@@ -253,19 +253,7 @@ const initDatabase = async () => {
           );
         }
         
-        const defaultLabels = [
-          { name: 'Urgente', color: '#ff7675' },
-          { name: 'Importante', color: '#fdcb6e' },
-          { name: 'Revisão', color: '#74b9ff' },
-          { name: 'Aprovado', color: '#55efc4' },
-          { name: 'Pausado', color: '#b2bec3' }
-        ];
-        for (const label of defaultLabels) {
-          await client.query(
-            'INSERT INTO labels (name, color, board_id) VALUES ($1, $2, $3)',
-            [label.name, label.color, boardId]
-          );
-        }
+        // Sem tags default
       }
     }
 
