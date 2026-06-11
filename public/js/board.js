@@ -572,7 +572,7 @@ function createCardItem(card, list) {
   const cardLabels = Array.isArray(card.labels) ? card.labels : [];
   if (cardLabels.length > 0) {
     html += '<div class="card-labels">';
-    cardLabels.forEach(l => { html += `<div class="card-label" style="background:${l.color}" title="${l.name || ''}"></div>`; });
+    cardLabels.forEach(l => { html += `<div class="card-label" style="background:${l.color}" title="${escapeHtml(l.name || '')}">${escapeHtml(l.name || '')}</div>`; });
     html += '</div>';
   }
 

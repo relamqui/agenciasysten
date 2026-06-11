@@ -141,7 +141,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-primar
 .card-item:active { cursor: grabbing; transform: scale(0.98); }
 .card-item.dragging { opacity: 0.4; transform: rotate(2deg); }
 .card-item .card-labels { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
-.card-item .card-label { height: 6px; width: 36px; border-radius: 3px; }
+.card-item .card-label { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .card-item .card-title { font-size: 15px; font-weight: 600; line-height: 1.4; word-break: break-word; color: #FFFFFF; }
 .card-item .card-badges { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
 .card-badge { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
