@@ -1377,7 +1377,7 @@ async function uploadAttachments(e) {
       });
       currentCardId = newCard.id;
       isCreatingCard = false;
-      document.getElementById('card-modal-title').textContent = 'EDITAR CARTÃO';
+      document.getElementById('card-id-display').textContent = `TSK-${String(newCard.id).padStart(3, '0')}`;
       document.getElementById('delete-card-btn').style.display = 'block';
       
       // Atualizar lista de cartões em background
