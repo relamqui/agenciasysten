@@ -106,9 +106,31 @@ router.get('/me', auth, async (req, res, next) => {
 router.get('/users', auth, async (req, res, next) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, avatar_color FROM users ORDER BY name ASC'
+      'SELECT id, name, email, avatar_color, is_designer FROM users ORDER BY name ASC'
     );
     res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/auth/users/:id/designer — alterna o status de designer
+router.put('/users/:id/designer', auth, async (req, res, next) => {
+  try {
+    const { is_designer } = req.body;
+    const { id } = req.params;
+    
+    // Qualquer usuário com acesso (auth) pode modificar no momento
+    const result = await pool.query(
+      'UPDATE users SET is_designer = $1 WHERE id = $2 RETURNING id, name, is_designer',
+      [is_designer, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
     next(err);
   }

@@ -30,10 +30,14 @@
       </button>
     </header>
 
-    <!-- TABS -->
-    <div class="board-tabs">
+    <!-- TABS E FILTROS -->
+    <div class="board-tabs" style="display:flex; align-items:center;">
       <button class="board-tab-btn active" data-view="kanban">Quadro</button>
       <button class="board-tab-btn" data-view="list">Lista</button>
+      
+      <select id="designer-filter" style="display:none; margin-left:16px; padding:6px 12px; background:var(--bg-glass); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-primary); outline:none; font-family:var(--font); font-size:13px;">
+        <option value="all">Todos os designers</option>
+      </select>
     </div>
 
     <!-- MAIN VIEWS -->
@@ -236,6 +240,16 @@
       </div>
       <button class="btn btn-primary" id="invite-member-btn">Convidar</button>
       <div id="members-list" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- DESIGNER MODAL -->
+  <div class="modal-overlay" id="designer-modal">
+    <div class="modal-content" style="max-width:400px;padding:24px;">
+      <button class="btn-icon modal-close" id="close-designer-modal">✕</button>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">Gerenciar Designers</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Selecione os usuários que são designers na agência.</p>
+      <div id="designers-list" style="margin-top:16px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
     </div>
   </div>
 

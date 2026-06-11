@@ -22,6 +22,7 @@ const initDatabase = async () => {
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS perm_agencia BOOLEAN DEFAULT false;`);
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS perm_financeiro BOOLEAN DEFAULT false;`);
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS perm_usuarios BOOLEAN DEFAULT false;`);
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_designer BOOLEAN DEFAULT false;`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS boards (

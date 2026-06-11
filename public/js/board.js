@@ -14,6 +14,9 @@ let currentViewMode = 'kanban';
 let quillEditor = null;
 let canManageLabels = false;
 
+let selectedDesignerFilter = 'all';
+let allUsers = [];
+
 const PRIORITY_MAP = {
   urgente: { label: 'Urgente', color: '#e74c3c', emoji: '🔴' },
   alta:    { label: 'Alta',    color: '#e67e22', emoji: '🟠' },
@@ -132,10 +135,116 @@ async function loadBoard() {
       const perm = await API.get('/labels/can-manage');
       canManageLabels = perm.canManage;
     } catch(e) { canManageLabels = false; }
+    
+    await initDesignerBoardFeature();
     renderLists();
   } catch (err) {
     showToast(err.message, 'error');
   }
+}
+
+// ===== DESIGNER BOARD FEATURE =====
+async function initDesignerBoardFeature() {
+  if (boardData && boardData.title === 'Designer') {
+    // 1. Change the "Membro" button to "Designers"
+    const addMemberBtn = document.getElementById('add-member-btn');
+    if (addMemberBtn) {
+      addMemberBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Designers
+      `;
+      // Replace click handler by cloning and replacing
+      const newBtn = addMemberBtn.cloneNode(true);
+      addMemberBtn.parentNode.replaceChild(newBtn, addMemberBtn);
+      
+      newBtn.addEventListener('click', openDesignerModal);
+    }
+
+    // 2. Load all users and populate filter
+    try {
+      allUsers = await API.get('/auth/users');
+    } catch (err) {
+      console.error('Erro ao carregar usuários', err);
+    }
+
+    const designerFilter = document.getElementById('designer-filter');
+    if (designerFilter) {
+      designerFilter.style.display = 'block';
+      
+      // Limpa as opções existentes mantendo apenas a primeira
+      designerFilter.innerHTML = '<option value="all">Todos os designers</option>';
+      
+      const designers = allUsers.filter(u => u.is_designer);
+      designers.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d.id;
+        option.textContent = d.name;
+        designerFilter.appendChild(option);
+      });
+
+      designerFilter.addEventListener('change', (e) => {
+        selectedDesignerFilter = e.target.value;
+        renderLists();
+      });
+    }
+  }
+}
+
+function openDesignerModal() {
+  const listEl = document.getElementById('designers-list');
+  listEl.innerHTML = '';
+
+  allUsers.forEach(user => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--bg-card); border-radius:var(--radius-md); border:1px solid var(--border);';
+    
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="user-avatar" style="background:${user.avatar_color || '#ccc'}; width:24px; height:24px; font-size:10px;">${user.name.charAt(0).toUpperCase()}</div>
+        <span style="font-size:14px;">${escapeHtml(user.name)}</span>
+      </div>
+      <label class="toggle-switch" style="cursor:pointer; display:flex; align-items:center;">
+        <input type="checkbox" style="width:16px; height:16px; accent-color:var(--primary);" ${user.is_designer ? 'checked' : ''}>
+      </label>
+    `;
+
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', async (e) => {
+      const isDesigner = e.target.checked;
+      try {
+        await API.put(`/auth/users/${user.id}/designer`, { is_designer: isDesigner });
+        user.is_designer = isDesigner;
+        
+        // Atualiza o dropdown se estiver aberto
+        const designerFilter = document.getElementById('designer-filter');
+        if (designerFilter) {
+          const currentValue = designerFilter.value;
+          designerFilter.innerHTML = '<option value="all">Todos os designers</option>';
+          const designers = allUsers.filter(u => u.is_designer);
+          designers.forEach(d => {
+            const option = document.createElement('option');
+            option.value = d.id;
+            option.textContent = d.name;
+            designerFilter.appendChild(option);
+          });
+          // Reseta a seleção ou volta para o que estava
+          if (designers.find(d => String(d.id) === String(currentValue))) {
+            designerFilter.value = currentValue;
+          } else {
+            selectedDesignerFilter = 'all';
+          }
+          renderLists();
+        }
+      } catch (err) {
+        showToast('Erro ao atualizar status', 'error');
+        e.target.checked = !isDesigner; // Revert
+      }
+    });
+
+    listEl.appendChild(row);
+  });
+
+  document.getElementById('designer-modal').classList.add('show');
 }
 
 // Criar nova etiqueta via Modal
@@ -274,7 +383,13 @@ function createListColumn(list) {
   cardsContainer.addEventListener('dragleave', handleDragLeave);
   cardsContainer.addEventListener('drop', handleDrop);
 
-  (list.cards || []).forEach(card => {
+  const filteredCards = (list.cards || []).filter(card => {
+    if (selectedDesignerFilter === 'all') return true;
+    const assignees = Array.isArray(card.assignees) ? card.assignees : [];
+    return assignees.some(a => String(a.id) === String(selectedDesignerFilter));
+  });
+
+  filteredCards.forEach(card => {
     cardsContainer.appendChild(createCardItem(card, list));
   });
 
@@ -358,7 +473,16 @@ function renderListView() {
     body.appendChild(tableHeader);
 
     // Cards
-    (list.cards || []).forEach(card => {
+    const filteredCards = (list.cards || []).filter(card => {
+      if (selectedDesignerFilter === 'all') return true;
+      const assignees = Array.isArray(card.assignees) ? card.assignees : [];
+      return assignees.some(a => String(a.id) === String(selectedDesignerFilter));
+    });
+
+    // Atualizar a contagem para usar o filteredCards
+    header.querySelector('.lv-count').textContent = filteredCards.length;
+
+    filteredCards.forEach(card => {
       const row = document.createElement('div');
       row.className = 'lv-row';
       
@@ -940,6 +1064,16 @@ function setupModals() {
   cardModal.addEventListener('click', (e) => {
     if (e.target === cardModal) { cardModal.classList.remove('show'); currentCardId = null; }
   });
+
+  const designerModal = document.getElementById('designer-modal');
+  if (designerModal) {
+    document.getElementById('close-designer-modal').addEventListener('click', () => {
+      designerModal.classList.remove('show');
+    });
+    designerModal.addEventListener('click', (e) => {
+      if (e.target === designerModal) designerModal.classList.remove('show');
+    });
+  }
   
   document.getElementById('card-title-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
