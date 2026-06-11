@@ -4,25 +4,32 @@ const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const multerS3 = require('multer-s3');
 
 const router = express.Router();
 
-// Configuração do multer para upload de arquivos
-const uploadDir = path.join(__dirname, '../../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
+const s3Client = new S3Client({
+  endpoint: `http${process.env.MINIO_SECURE === 'true' ? 's' : ''}://${process.env.MINIO_ENDPOINT}`,
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY,
+    secretAccessKey: process.env.MINIO_SECRET_KEY,
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
+  forcePathStyle: true,
 });
-const upload = multer({ storage: storage });
+
+const upload = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: process.env.MINIO_BUCKET,
+    acl: 'public-read',
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+  })
+});
 
 // POST /api/cards — criar cartão
 router.post('/', auth, async (req, res, next) => {
@@ -268,7 +275,9 @@ router.post('/:id/attachments', auth, upload.array('files', 10), async (req, res
 
     const insertedFiles = [];
     for (const file of req.files) {
-      const fileUrl = `/uploads/${file.filename}`;
+      const protocol = process.env.MINIO_SECURE === 'true' ? 'https' : 'http';
+      const fileUrl = `${protocol}://${process.env.MINIO_ENDPOINT}/${process.env.MINIO_BUCKET}/${file.key}`;
+      
       const result = await pool.query(
         'INSERT INTO card_attachments (card_id, file_name, file_url, uploader_id) VALUES ($1, $2, $3, $4) RETURNING *',
         [req.params.id, file.originalname, fileUrl, req.userId]
@@ -290,10 +299,28 @@ router.delete('/:cardId/attachments/:attachmentId', auth, async (req, res, next)
       return res.status(404).json({ error: 'Anexo não encontrado' });
     }
 
-    // Tentar apagar o arquivo fisicamente
-    const filePath = path.join(__dirname, '../../public', attachment.rows[0].file_url);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const fileUrl = attachment.rows[0].file_url;
+    
+    // Tentar apagar o arquivo
+    if (fileUrl.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, '../../public', fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } else {
+      try {
+        const urlObj = new URL(fileUrl);
+        const bucketPrefix = `/${process.env.MINIO_BUCKET}/`;
+        if (urlObj.pathname.startsWith(bucketPrefix)) {
+          const key = decodeURIComponent(urlObj.pathname.substring(bucketPrefix.length));
+          await s3Client.send(new DeleteObjectCommand({
+            Bucket: process.env.MINIO_BUCKET,
+            Key: key,
+          }));
+        }
+      } catch (e) {
+        console.error('Error deleting from Minio:', e);
+      }
     }
 
     await pool.query('DELETE FROM card_attachments WHERE id = $1', [req.params.attachmentId]);
