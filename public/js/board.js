@@ -601,7 +601,11 @@ function createCardItem(card, list) {
   // Badge de prioridade
   if (card.priority && card.priority !== 'normal') {
     const p = PRIORITY_MAP[card.priority];
-    if (p) badges.push(`<span class="card-badge priority-badge" style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}44;">${p.emoji} ${p.label}</span>`);
+    if (p) {
+      badges.push(`<span class="card-badge priority-badge" style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}44;">${p.emoji} ${p.label}</span>`);
+      el.style.border = `1px solid ${p.color}`;
+      el.style.boxShadow = `0 4px 12px ${p.color}40`;
+    }
   }
 
   if (badges.length > 0) html += `<div class="card-badges">${badges.join('')}</div>`;
