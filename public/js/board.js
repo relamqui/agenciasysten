@@ -1362,9 +1362,43 @@ async function loadAttachments(cardId) {
 
 async function uploadAttachments(e) {
   if (!currentCardId) {
-    showToast('Salve o cartão primeiro antes de adicionar arquivos', 'error');
-    e.target.value = '';
-    return;
+    const title = document.getElementById('card-title-input').value.trim();
+    if (!title) {
+      showToast('Digite um título para a tarefa primeiro antes de adicionar arquivos', 'error');
+      e.target.value = '';
+      return;
+    }
+    try {
+      const startDate = toLocalISOString(document.getElementById('card-start-date').value);
+      const dueDate   = toLocalISOString(document.getElementById('card-due-date').value);
+      const assigneesArr = currentAssignees ? currentAssignees.map(a => a.id) : [];
+      const labelsArr = currentCardLabels ? currentCardLabels.map(l => l.id) : [];
+
+      const newCard = await API.post('/cards', {
+        title,
+        description: quillEditor ? quillEditor.root.innerHTML : '',
+        list_id: createTargetListId,
+        start_date: startDate,
+        due_date: dueDate,
+        assigned_user_ids: assigneesArr,
+        priority: currentPriority,
+        label_ids: labelsArr
+      });
+      currentCardId = newCard.id;
+      isCreatingCard = false;
+      document.getElementById('card-modal-title').textContent = 'EDITAR CARTÃO';
+      document.getElementById('delete-card-btn').style.display = 'block';
+      
+      // Atualizar lista de cartões em background
+      API.get(`/lists/${boardId}/lists`).then(data => {
+        listsData = data;
+        renderLists();
+      });
+    } catch (err) {
+      showToast('Erro ao criar cartão: ' + err.message, 'error');
+      e.target.value = '';
+      return;
+    }
   }
   
   const files = e.target.files;
