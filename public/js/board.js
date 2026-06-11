@@ -908,7 +908,8 @@ async function openCardModal(cardId, list) {
     currentPriority = card.priority || 'normal';
     renderPriorityBtn(currentPriority);
 
-    renderCardLabels(card.labels || []);
+    currentCardLabels = card.labels || [];
+    renderCardLabels();
     loadAttachments(cardId);
 
     document.getElementById('card-modal').classList.add('show');
