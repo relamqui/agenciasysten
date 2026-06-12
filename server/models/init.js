@@ -236,6 +236,16 @@ const initDatabase = async () => {
           title: 'Designer',
           background: 'linear-gradient(135deg, #5F27CD, #341F97)',
           lists: ['Pendente', 'Em produção', 'Aprovação', 'Drive', 'Concluído']
+        },
+        {
+          title: 'SYNKAI',
+          background: 'linear-gradient(135deg, #FF9F43, #EE5253)',
+          lists: ['reuniões', 'planejamentos', 'em produção', 'bug', 'finalizados']
+        },
+        {
+          title: 'MRA EVENTOS ESTRUTURAS',
+          background: 'linear-gradient(135deg, #0ABDE3, #2E86DE)',
+          lists: ['reuniões', 'eventos']
         }
       ];
 
@@ -254,6 +264,42 @@ const initDatabase = async () => {
         }
         
         // Sem tags default
+      }
+    }
+
+    // ── MIGRATION: Adicionar novos quadros globais ──
+    const newGlobalBoards = [
+      {
+        title: 'SYNKAI',
+        background: 'linear-gradient(135deg, #FF9F43, #EE5253)',
+        lists: ['reuniões', 'planejamentos', 'em produção', 'bug', 'finalizados']
+      },
+      {
+        title: 'MRA EVENTOS ESTRUTURAS',
+        background: 'linear-gradient(135deg, #0ABDE3, #2E86DE)',
+        lists: ['reuniões', 'eventos']
+      }
+    ];
+
+    for (const b of newGlobalBoards) {
+      const boardRes = await client.query(
+        "SELECT id FROM boards WHERE title = $1 AND owner_id IS NULL",
+        [b.title]
+      );
+      if (boardRes.rows.length === 0) {
+        const res = await client.query(
+          'INSERT INTO boards (title, background, owner_id) VALUES ($1, $2, NULL) RETURNING id',
+          [b.title, b.background]
+        );
+        const boardId = res.rows[0].id;
+        
+        for (let i = 0; i < b.lists.length; i++) {
+          await client.query(
+            'INSERT INTO lists (title, board_id, position) VALUES ($1, $2, $3)',
+            [b.lists[i], boardId, i]
+          );
+        }
+        console.log(`✅ Quadro "${b.title}" adicionado via migration`);
       }
     }
 
