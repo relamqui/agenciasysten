@@ -24,6 +24,7 @@ const upload = multer({
     s3: s3Client,
     bucket: process.env.MINIO_BUCKET,
     acl: 'public-read',
+    contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       cb(null, uniqueSuffix + '-' + file.originalname);
