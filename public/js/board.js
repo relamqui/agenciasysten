@@ -1360,6 +1360,28 @@ function setupModals() {
   });
 }
 
+window.forceDownload = async function(url, filename) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+};
+
 async function loadAttachments(cardId) {
   const list = document.getElementById('attachments-list');
   
@@ -1391,9 +1413,16 @@ async function loadAttachments(cardId) {
       const isImg = ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
       const isVid = ['mp4','webm','ogg','mov'].includes(ext);
       
+      const downloadBtn = `
+        <button class="btn-icon" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:white; width:24px; height:24px; border-radius:50%; z-index:10; backdrop-filter:blur(2px);" onclick="event.preventDefault(); event.stopPropagation(); window.forceDownload('${a.file_url}', '${escapeHtml(a.file_name)}')" title="Baixar arquivo">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+        </button>
+      `;
+      
       if (isImg) {
         return `
           <div style="position:relative; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+            ${downloadBtn}
             <a href="${a.file_url}" target="_blank" style="display:block;">
               <img src="${a.file_url}" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" title="${escapeHtml(a.file_name)}" />
             </a>
@@ -1408,6 +1437,7 @@ async function loadAttachments(cardId) {
       } else if (isVid) {
         return `
           <div style="position:relative; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+            ${downloadBtn}
             <video src="${a.file_url}" controls style="width:100%; aspect-ratio:1/1; background:#000; display:block; object-fit:cover;" title="${escapeHtml(a.file_name)}"></video>
             <div style="padding:6px 8px; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.6); position:absolute; bottom:0; left:0; right:0;">
               <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(a.file_name)}">${escapeHtml(a.file_name)}</a>
@@ -1419,7 +1449,8 @@ async function loadAttachments(cardId) {
         `;
       } else {
         return `
-          <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:4px; border:1px solid rgba(255,255,255,0.05); aspect-ratio:1/1; flex-direction: column;">
+          <div style="position:relative; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:4px; border:1px solid rgba(255,255,255,0.05); aspect-ratio:1/1; flex-direction: column;">
+            ${downloadBtn}
             <a href="${a.file_url}" target="_blank" style="color:var(--text); text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:13px; flex:1; overflow:hidden; width:100%;" title="${escapeHtml(a.file_name)}">
               <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
             </a>
